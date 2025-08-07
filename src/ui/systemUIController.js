@@ -25,6 +25,7 @@ export default class SystemUIController {
     this.duration = 8;
     this.popUpMode = false;
     this.systemRunning = false;
+    this._activeDot = 0; // currently selected gesture row
 
     // beat subdivision highlight
     this._beatCount = 0;
@@ -93,8 +94,14 @@ export default class SystemUIController {
       },
       playSeq: () => this.loadFirstSequence(),
       nextSeq: () => this.loadNextSequence(),
+      setActiveDot: (idx) => {
+        this._activeDot = idx;
+        this.textFieldCtrl.highlightActiveDot(idx);
+      },
     });
     this.buttonPanel.build();
+    // initialize active dot highlight
+    this.textFieldCtrl.highlightActiveDot(this._activeDot);
 
     // hook up timer highlight callback
     this.timer.setHighlightCallback((beatCount, maxCols) => {
@@ -268,5 +275,9 @@ export default class SystemUIController {
     const subsMap = [1, 2, 2, 4];
     const subs = subsMap[this.timerMode] || 1;
     return this.duration * subs;
+  }
+
+  get activeDot() {
+    return this._activeDot;
   }
 }

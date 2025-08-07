@@ -34,7 +34,7 @@ new p5((p) => {
     // ─── WIRE SPATIALUI → TEXT GRID ──────────────────────────────────────────
     spatialUI.setGestureCallback(name => {
       console.log('[main] gesture:', name);
-      systemUI.textFieldCtrl.addGestureName(name);
+      systemUI.textFieldCtrl.addGestureName(name, systemUI.activeDot);
     });
     spatialUI.setWeightCallback(name => {
       console.log('[main] weight:', name);
