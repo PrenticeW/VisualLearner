@@ -86,7 +86,10 @@ export default class SystemUIController {
         this.textFieldCtrl.columns.forEach((c) => c.inputBottom.value(''));
       },
       clearGesture: () => {
-        this.textFieldCtrl.columns.forEach((c) => c.inputTop.value(''));
+        this.textFieldCtrl.columns.forEach((c) => {
+          c.inputTop.value('');
+          if (c.inputTop2) c.inputTop2.value('');
+        });
       },
       playSeq: () => this.loadFirstSequence(),
       nextSeq: () => this.loadNextSequence(),
@@ -130,9 +133,11 @@ export default class SystemUIController {
 
     this.timer.start();
 
-    // load gestures into dot controller
-    const gestureSeq = this.textFieldCtrl.getGestureValues();
-    this.spatialUIController.dotController.loadSequence(gestureSeq);
+    // load gestures into dot controller(s)
+    const seq1 = this.textFieldCtrl.getGestureValues(0);
+    const seq2 = this.textFieldCtrl.getGestureValues(1);
+    const sequences = seq2.length > 0 ? [seq1, seq2] : [seq1];
+    this.spatialUIController.dotController.loadSequences(sequences);
     this.spatialUIController.dotController.setPopUpMode(this.popUpMode);
     const subs = this.timer.getSubdivisionsPerBeat();
     this.spatialUIController.dotController.tickIntervalMs =
@@ -214,6 +219,7 @@ export default class SystemUIController {
     this.textFieldCtrl.updateLabels(cfg.timerMode, cfg.duration);
     this.textFieldCtrl.columns.forEach((col, i) => {
       col.inputTop.value(cfg.gestureSeq[i] || '');
+      if (col.inputTop2) col.inputTop2.value('');
       col.inputBottom.value(cfg.weightSeq[i] || '');
     });
 

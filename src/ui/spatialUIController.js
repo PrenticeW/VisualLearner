@@ -1,6 +1,6 @@
  // src/ui/spatialUIController.js
 
-import DotController from '../controllers/dotController.js';
+import MultiDotController from '../controllers/multiDotController.js';
 import OrbController from '../controllers/orbController.js';
 
 export default class SpatialUIController {
@@ -227,12 +227,14 @@ export default class SpatialUIController {
       Object.assign(gesturePositions, obj.getPositions());
     });
 
-    // instantiate & initialize dotController exactly once
-    this.dotController = new DotController(this.p, {
+    // instantiate & initialize dot controller(s) exactly once
+    this.dotController = new MultiDotController(this.p, {
       positionMap: gesturePositions,
       moveDurationMs: 500,
     });
-    this.dotController.loadSequence(['C', 'C.U', 'C.D', 'C.L', 'C.R']);
+    this.dotController.loadSequences([
+      ['C', 'C.U', 'C.D', 'C.L', 'C.R'],
+    ]);
   }
 
   render(dt) {
