@@ -4,7 +4,7 @@ export default class TextFieldController {
   constructor(p, maxCols = 32) {
     this.p = p;
     this.maxCols = maxCols;
-    this.columns = []; // { inputTop, inputBottom, label }[]
+    this.columns = []; // { inputTop, inputTop2, inputBottom, label }[]
     this.container = null;
   }
 
@@ -15,7 +15,7 @@ export default class TextFieldController {
       .style('top','0')
       .style('left','0')
       .style('width','100%')
-      .style('height','85px')
+      .style('height','105px')
       .style('background','rgba(255,255,255,0.8)')
       .style('padding','5px')
       .style('display','flex')
@@ -35,6 +35,11 @@ export default class TextFieldController {
         .style('font-size','10px')
         .parent(col);
 
+      const inputTop2 = p.createInput('')
+        .style('width','40px').style('height','20px')
+        .style('font-size','10px')
+        .parent(col);
+
       const inputBottom = p.createInput('')
         .style('width','40px').style('height','20px')
         .style('font-size','10px')
@@ -44,7 +49,7 @@ export default class TextFieldController {
         .style('font-size','10px')
         .parent(col);
 
-      this.columns.push({ inputTop, inputBottom, label });
+      this.columns.push({ inputTop, inputTop2, inputBottom, label });
     }
 
     this.updateLabels(0, 8);
@@ -55,19 +60,22 @@ export default class TextFieldController {
     this.columns.forEach((col, i) => {
       if (i < headers.length) {
         col.inputTop.show();
+        col.inputTop2.show();
         col.inputBottom.show();
         col.label.show();
         col.label.html(headers[i]);
       } else {
         col.inputTop.hide();
+        col.inputTop2.hide();
         col.inputBottom.hide();
         col.label.hide();
       }
     });
   }
 
-  getGestureValues() {
-    return this.columns.map(c => c.inputTop.value().trim()).filter(Boolean);
+  getGestureValues(dot = 0) {
+    const key = dot === 1 ? 'inputTop2' : 'inputTop';
+    return this.columns.map(c => c[key].value().trim()).filter(Boolean);
   }
   getWeightValues() {
     return this.columns.map(c => c.inputBottom.value().trim()).filter(Boolean);
@@ -75,21 +83,26 @@ export default class TextFieldController {
 
   highlight(index) {
     this.clearHighlights();
-    const filled = this.columns.filter(c =>
-      c.inputTop.value().trim() || c.inputBottom.value().trim()
+    const filled = this.columns.filter(
+      (c) =>
+        c.inputTop.value().trim() ||
+        c.inputTop2.value().trim() ||
+        c.inputBottom.value().trim()
     );
     if (filled.length === 0) return;
     const col = filled[index % filled.length];
-    col.inputTop.style('background-color','rgba(255,200,200,1)');
-    col.inputBottom.style('background-color','rgba(255,200,200,1)');
-    col.label.style('background-color','rgba(255,200,200,1)');
+    col.inputTop.style('background-color', 'rgba(255,200,200,1)');
+    col.inputTop2.style('background-color', 'rgba(255,200,200,1)');
+    col.inputBottom.style('background-color', 'rgba(255,200,200,1)');
+    col.label.style('background-color', 'rgba(255,200,200,1)');
   }
 
   clearHighlights() {
-    this.columns.forEach(c => {
-      c.inputTop.style('background-color','white');
-      c.inputBottom.style('background-color','white');
-      c.label.style('background-color','transparent');
+    this.columns.forEach((c) => {
+      c.inputTop.style('background-color', 'white');
+      c.inputTop2.style('background-color', 'white');
+      c.inputBottom.style('background-color', 'white');
+      c.label.style('background-color', 'transparent');
     });
   }
 
@@ -112,10 +125,11 @@ export default class TextFieldController {
     return headers;
   }
 
-  addGestureName(name) {
+  addGestureName(name, dot = 0) {
+    const key = dot === 1 ? 'inputTop2' : 'inputTop';
     for (const col of this.columns) {
-      if (!col.inputTop.value().trim()) {
-        col.inputTop.value(name);
+      if (!col[key].value().trim()) {
+        col[key].value(name);
         return;
       }
     }
