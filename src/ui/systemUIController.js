@@ -47,6 +47,11 @@ export default class SystemUIController {
         this.buttonPanel.updateTimerModeLabel(
           `Timer Mode: ${labels[this.timerMode]}`
         );
+
+        // ensure dot movement stays in sync with the timer after mode changes
+        const subs = this.timer.getSubdivisionsPerBeat();
+        this.spatialUIController.dotController.tickIntervalMs =
+          60000 / (this.tempo * subs);
       },
       setTempo: () => {
   const t = parseInt(this.buttonPanel.getTempoValue(), 10);
