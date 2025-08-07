@@ -6,11 +6,11 @@ import DotController from './controllers/dotController.js';
 import SystemUIController from './ui/systemUIController.js';
 import CanvasRenderer from './render/canvasRenderer.js';
 import SpatialUIController from './ui/spatialUIController.js';
-import ComposerManager from './managers/composerManager.js';
+
 
 const timer = new TimerManager();
 const sequences = new SequenceManager();
-const composer = new ComposerManager();
+
 
 new p5((p) => {
   let systemUI, spatialUI, canvas;

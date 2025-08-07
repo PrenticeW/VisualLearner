@@ -53,14 +53,17 @@ export default class SystemUIController {
         );
       },
       setTempo: () => {
-        const t = parseInt(this.buttonPanel.getTempoValue(), 10);
-        if (t > 0) {
-          this.tempo = t;
-          this.timer.setTempo(t);
-        } else {
-          alert('Please enter a positive tempo');
-        }
-      },
+  const t = parseInt(this.buttonPanel.getTempoValue(), 10);
+  if (t > 0) {
+    this.tempo = t;
+    this.timer.setTempo(t);
+
+    const subs = this.timer.getSubdivisionsPerBeat();
+    this.spatialUIController.dotController.tickIntervalMs = 60000 / (t * subs);
+  } else {
+    alert('Please enter a positive tempo');
+  }
+},
       startStop: () => {
         this.systemRunning ? this._stopSystem() : this._startSystem();
       },
@@ -198,7 +201,7 @@ export default class SystemUIController {
     if (!isNaN(cfg.tempo)) {
       this.tempo = cfg.tempo;
       this.timer.setTempo(cfg.tempo);
-      this.tempoInput.value(cfg.tempo);
+      this.buttonPanel.tempoInput.value(cfg.tempo);
     }
     if (!isNaN(cfg.duration)) {
       this.duration = cfg.duration;
