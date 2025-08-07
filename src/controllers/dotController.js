@@ -6,10 +6,7 @@ export default class DotController {
    * @param {object} config.positionMap   token → {x,y}
    * @param {number} [config.moveDurationMs=500] duration of each leg
    */
-  constructor(
-    p,
-    { positionMap: gesturePositions, moveDurationMs = 500, canvas = null }
-  ) {
+  constructor(p, { positionMap: gesturePositions, moveDurationMs = 500 }) {
     this.p = p;
     this.gesturePositions = gesturePositions;
 

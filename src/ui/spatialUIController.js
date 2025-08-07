@@ -231,7 +231,6 @@ export default class SpatialUIController {
     this.dotController = new DotController(this.p, {
       positionMap: gesturePositions,
       moveDurationMs: 500,
-      canvas: this.canvas,
     });
     this.dotController.loadSequence(['C', 'C.U', 'C.D', 'C.L', 'C.R']);
   }
