@@ -197,7 +197,7 @@ export default class SystemUIController {
     if (!isNaN(cfg.tempo)) {
       this.tempo = cfg.tempo;
       this.timer.setTempo(cfg.tempo);
-      this.buttonPanel.tempoInput.value(cfg.tempo);
+      this.buttonPanel.setTempoValue(cfg.tempo);
     }
     if (!isNaN(cfg.duration)) {
       this.duration = cfg.duration;
