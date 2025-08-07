@@ -48,6 +48,19 @@ export default class ButtonPanelController {
       .style('margin', '2px')
       .parent(this.container);
 
+    // Dot selector (active gesture row)
+    this.dotRadio = p
+      .createRadio()
+      .style('margin', '2px')
+      .style('font-size', '10px')
+      .parent(this.container);
+    this.dotRadio.option('0', 'Dot 1');
+    this.dotRadio.option('1', 'Dot 2');
+    this.dotRadio.value('0');
+    this.dotRadio.changed(() =>
+      this.handlers.setActiveDot?.(parseInt(this.dotRadio.value(), 10))
+    );
+
     // Other controls
     makeBtn('startStop', 'Go', 60);
     makeBtn('togglePopUp', 'Pop Up Mode: Off', 100);

@@ -106,6 +106,14 @@ export default class TextFieldController {
     });
   }
 
+  // Visually indicate which dot row is active for editing
+  highlightActiveDot(dot = 0) {
+    this.columns.forEach((c) => {
+      c.inputTop.style('outline', dot === 0 ? '2px solid blue' : 'none');
+      c.inputTop2.style('outline', dot === 1 ? '2px solid blue' : 'none');
+    });
+  }
+
   _computeBeatHeaders(timerMode, duration) {
     const subsMap = [1,2,2,4];
     const subs = subsMap[timerMode] || 1;
