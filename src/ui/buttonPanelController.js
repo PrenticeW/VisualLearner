@@ -64,6 +64,11 @@ export default class ButtonPanelController {
     return this.tempoInput.value();
   }
 
+  // Setter to allow SystemUIController to update the input
+  setTempoValue(value) {
+    this.tempoInput.value(`${value}`);
+  }
+
   updateTimerModeLabel(text) {
     this.buttons.toggleTimerMode.html(text);
   }
