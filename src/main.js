@@ -2,7 +2,6 @@ import p5 from 'https://jspm.dev/p5@1.6.0';
 
 import TimerManager from './managers/timerManager.js';
 import SequenceManager from './managers/sequenceManager.js';
-import DotController from './controllers/dotController.js';
 import SystemUIController from './ui/systemUIController.js';
 import CanvasRenderer from './render/canvasRenderer.js';
 import SpatialUIController from './ui/spatialUIController.js';
@@ -20,9 +19,6 @@ new p5((p) => {
   };
 
   p.setup = () => {
-    const weightController  = new DotController(sequences, 'weight');
-    const gestureController = new DotController(sequences, 'gesture');
-
     canvas    = new CanvasRenderer(p);
     canvas.init();
 
@@ -31,8 +27,6 @@ new p5((p) => {
     systemUI  = new SystemUIController(p, {
       timer,
       sequences,
-      weightController,
-      gestureController,
       canvasRenderer: canvas,
       spatialUIController: spatialUI,
     });
