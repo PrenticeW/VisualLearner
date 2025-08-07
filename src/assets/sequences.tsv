@@ -1,0 +1,16 @@
+ 1	States	Whole	Off	60	8				
+	Beat	1	2	3	4	5	6	7	8
+	Gesture	LU.U	RU.U	LU.U	RU.U	LU.U	RU.U	LU.U	RU.U
+	Weight	X.U	X.D	X.U	X.D	X.U	X.D	X.U	X.D
+2	States	Whole	Off	60	4				
+	Beat	1	2	3	4				
+	Gesture	L	R	L	R				
+	Weight	X.RU	X.LU	X.LD	X.RD				
+3	States	Whole	Off	60	8				
+	Beat	1	2	3	4	5	6	7	8
+	Gesture	LU.U	RU.U	LU.U	RU.U	LU.U	RU.U	LU.U	RU.U
+	Weight	X.U	X.D	X.U	X.D	X.U	X.D	X.U	X.D
+4	 States	Whole	Off	60	4				
+	Beat	1	2	3	4				
+	Gesture	L	R	L	R				
+	Weight	X.RU	X.LU	X.LD	X.RD				
