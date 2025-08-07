@@ -8,8 +8,6 @@ export default class SystemUIController {
     p,
     {
       timer,
-      weightController,
-      gestureController,
       canvasRenderer,
       spatialUIController,
       sequences, // preloaded SequenceManager
@@ -17,8 +15,6 @@ export default class SystemUIController {
   ) {
     this.p = p;
     this.timer = timer;
-    this.weightController = weightController;
-    this.gestureController = gestureController;
     this.canvasRenderer = canvasRenderer;
     this.spatialUIController = spatialUIController;
     this.sequenceManager = sequences;
