@@ -51,10 +51,7 @@ export default class TimerManager {
 
   // subdivisions per beat
   getSubdivisionsPerBeat() {
-    if (this.timerMode === 0) return 1;
-    if (this.timerMode === 1 || this.timerMode === 2) return 2;
-    if (this.timerMode === 3) return 4;
-    return 1;
+   return [1, 2, 2, 4][this.timerMode] || 1;
   }
 
   _recalcInterval() {
