@@ -109,16 +109,20 @@ export default class SystemUIController {
       this.textFieldCtrl.highlight(this._beatCount % maxCols);
     });
 
-    // advance dots/orb on subdivision
+    // advance dots/orbs on subdivision
     this.timer.on('subdivision', () => {
       if (!this.systemRunning) return;
       this.spatialUIController.dotController.advance();
       const len = this.weightSequence.length;
       if (len > 0) {
         const token = this.weightSequence[this.weightIndex];
-        const suffix = token.includes('.') ? token.split('.')[1] : '';
-        const section = suffix ? `W.L.${suffix}` : 'W.L';
-        this.spatialUIController.orbController.setHighlight(section);
+        const parts = token.split('.');
+        const side = parts[1] || 'L';
+        const dir = parts[2];
+        const section = dir ? `W.${side}.${dir}` : `W.${side}`;
+        const other = side === 'L' ? 'R' : 'L';
+        this.spatialUIController.orbControllers[side].setHighlight(section);
+        this.spatialUIController.orbControllers[other].clearHighlight();
         this.weightIndex = (this.weightIndex + 1) % len;
       }
     });
@@ -156,9 +160,13 @@ export default class SystemUIController {
     this.weightSequence = this.textFieldCtrl.getWeightValues();
     if (this.weightSequence.length > 0) {
       const first = this.weightSequence[0];
-      const suffix = first.includes('.') ? first.split('.')[1] : '';
-      const section = suffix ? `W.L.${suffix}` : 'W.L';
-      this.spatialUIController.orbController.setHighlight(section);
+      const parts = first.split('.');
+      const side = parts[1] || 'L';
+      const dir = parts[2];
+      const section = dir ? `W.${side}.${dir}` : `W.${side}`;
+      const other = side === 'L' ? 'R' : 'L';
+      this.spatialUIController.orbControllers[side].setHighlight(section);
+      this.spatialUIController.orbControllers[other].clearHighlight();
     }
     this.weightIndex = this.weightSequence.length > 1 ? 1 : 0;
 
@@ -172,7 +180,8 @@ export default class SystemUIController {
     this.timer.stop();
     this.textFieldCtrl.clearHighlights();
     this.spatialUIController.dotController.stop();
-    this.spatialUIController.orbController.clearHighlight();
+    this.spatialUIController.orbControllers.L.clearHighlight();
+    this.spatialUIController.orbControllers.R.clearHighlight();
     this.spatialUIController.showContextMarkersOff();
     this.weightIndex = 0;
   }
