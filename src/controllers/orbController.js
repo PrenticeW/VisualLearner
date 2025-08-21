@@ -19,8 +19,8 @@ export default class OrbController {
   /**
    * Highlight one of the eight directional sectors.
    * @param {string} section
-   *        one of 'X.U', 'X.D', 'X.L', 'X.R',
-   *        'X.LU', 'X.RU', 'X.LD', 'X.RD'
+   *        one of 'W.L.U', 'W.L.D', 'W.L.L', 'W.L.R',
+   *        'W.L.LU', 'W.L.RU', 'W.L.LD', 'W.L.RD'
    */
   setHighlight(section) {
     this.highlightedSection = section;
@@ -49,29 +49,29 @@ export default class OrbController {
     if (this.highlightedSection) {
       p.fill(200, 80, 230, 220);
       switch (this.highlightedSection) {
-        case 'X.U':
+        case 'W.L.U':
           p.arc(0, 0, d, d, p.PI, 0, p.PIE);
           break;
-        case 'X.D':
+        case 'W.L.D':
           p.arc(0, 0, d, d, 0, p.PI, p.PIE);
           break;
-        case 'X.R':
+        case 'W.L.R':
           p.arc(0, 0, d, d, -p.HALF_PI, p.HALF_PI, p.PIE);
           break;
-        case 'X.L':
+        case 'W.L.L':
           p.arc(0, 0, d, d, p.HALF_PI, 3 * p.HALF_PI, p.PIE);
           break;
-        case 'X.LU':
+        case 'W.L.LU':
           p.arc(0, 0, d, d, p.PI, 3 * p.HALF_PI, p.PIE);
           break;
-        case 'X.RU':
+        case 'W.L.RU':
           p.arc(0, 0, d, d, 3 * p.HALF_PI, p.TWO_PI, p.PIE);
           break;
-        case 'X.LD':
+        case 'W.L.LD':
           p.arc(0, 0, d, d, p.HALF_PI, p.PI, p.PIE);
 
           break;
-        case 'X.RD':
+        case 'W.L.RD':
           p.arc(0, 0, d, d, 0, p.HALF_PI, p.PIE);
           break;
       }

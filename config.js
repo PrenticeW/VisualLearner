@@ -118,7 +118,7 @@ export const FALLBACK_WEIGHT_SEQ = [
   'LL',
   'LDL',
 ];
-export const FALLBACK_GESTURE_SEQ = ['X.R', 'X.D', 'X.L', 'X.U'];
+export const FALLBACK_GESTURE_SEQ = ['W.L.R', 'W.L.D', 'W.L.L', 'W.L.U'];
 
 // ——— (Later) CSV filename ———
 export const SEQUENCE_CSV_PATH = 'sequences - Sheet1.csv';
