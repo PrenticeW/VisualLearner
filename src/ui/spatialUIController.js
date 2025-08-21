@@ -129,20 +129,20 @@ export default class SpatialUIController {
 
     // instantiate gesture‐objects
     this.allGestureObjects = [
-      new GestureObject({ x: cx, y: cy }, 'C', secondary),
-      new GestureObject({ x: cx, y: cy - 100 }, 'U', primary),
-      new GestureObject({ x: cx, y: cy + 100 }, 'D', primary),
+      new GestureObject({ x: cx, y: cy }, 'L', secondary),
+      new GestureObject({ x: cx, y: cy - 100 }, 'LU', primary),
+      new GestureObject({ x: cx, y: cy + 100 }, 'LD', primary),
       new GestureObject(
         {
           x: cx + this.hOffset - this.pairSpacing - this.extraGap / 2,
           y: cy - 100,
         },
-        'RU',
+        'LUR',
         secondary
       ),
       new GestureObject(
         { x: cx + this.hOffset - this.pairSpacing - this.extraGap / 2, y: cy },
-        'R',
+        'LR',
         primary
       ),
       new GestureObject(
@@ -150,7 +150,7 @@ export default class SpatialUIController {
           x: cx + this.hOffset - this.pairSpacing - this.extraGap / 2,
           y: cy + 100,
         },
-        'RD',
+        'LDR',
         secondary
       ),
       new GestureObject(
@@ -158,12 +158,12 @@ export default class SpatialUIController {
           x: cx - this.hOffset + this.pairSpacing + this.extraGap / 2,
           y: cy - 100,
         },
-        'LU',
+        'LUL',
         secondary
       ),
       new GestureObject(
         { x: cx - this.hOffset + this.pairSpacing + this.extraGap / 2, y: cy },
-        'L',
+        'LL',
         primary
       ),
       new GestureObject(
@@ -171,7 +171,7 @@ export default class SpatialUIController {
           x: cx - this.hOffset + this.pairSpacing + this.extraGap / 2,
           y: cy + 100,
         },
-        'LD',
+        'LDL',
         secondary
       ),
     ];
@@ -233,7 +233,7 @@ export default class SpatialUIController {
       moveDurationMs: 500,
     });
     this.dotController.loadSequences([
-      ['C', 'C.U', 'C.D', 'C.L', 'C.R'],
+      ['L', 'L.U', 'L.D', 'L.L', 'L.R'],
     ]);
   }
 
@@ -247,8 +247,8 @@ export default class SpatialUIController {
       this.p.noStroke();
       this.p.fill(180, 130, 200, 180);
       this.allGestureObjects
-        // filter out the center marker (prefix 'C')
-        .filter((go) => go.prefix !== 'C')
+        // filter out the center marker (prefix 'L')
+        .filter((go) => go.prefix !== 'L')
         .forEach((go) => {
           const { x, y } = go.center;
           this.p.ellipse(x, y, 45, 45);
