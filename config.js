@@ -117,8 +117,35 @@ export const FALLBACK_WEIGHT_SEQ = [
   'LUL',
   'LL',
   'LDL',
+  'R.R',
+  'R.D',
+  'R.L',
+  'R.U',
+  'RU.R',
+  'RU.D',
+  'RU.L',
+  'RU.U',
+  'RD.R',
+  'RD.D',
+  'RD.L',
+  'RD.U',
+  'RUR',
+  'RR',
+  'RDR',
+  'RUL',
+  'RL',
+  'RDL',
 ];
-export const FALLBACK_GESTURE_SEQ = ['W.L.R', 'W.L.D', 'W.L.L', 'W.L.U'];
+export const FALLBACK_GESTURE_SEQ = [
+  'W.L.R',
+  'W.L.D',
+  'W.L.L',
+  'W.L.U',
+  'W.R.R',
+  'W.R.D',
+  'W.R.L',
+  'W.R.U',
+];
 
 // ——— (Later) CSV filename ———
 export const SEQUENCE_CSV_PATH = 'sequences - Sheet1.csv';
