@@ -117,7 +117,7 @@ export default class SystemUIController {
       if (len > 0) {
         const token = this.weightSequence[this.weightIndex];
         const suffix = token.includes('.') ? token.split('.')[1] : '';
-        const section = suffix ? `X.${suffix}` : 'X';
+        const section = suffix ? `W.L.${suffix}` : 'W.L';
         this.spatialUIController.orbController.setHighlight(section);
         this.weightIndex = (this.weightIndex + 1) % len;
       }
@@ -157,7 +157,7 @@ export default class SystemUIController {
     if (this.weightSequence.length > 0) {
       const first = this.weightSequence[0];
       const suffix = first.includes('.') ? first.split('.')[1] : '';
-      const section = suffix ? `X.${suffix}` : 'X';
+      const section = suffix ? `W.L.${suffix}` : 'W.L';
       this.spatialUIController.orbController.setHighlight(section);
     }
     this.weightIndex = this.weightSequence.length > 1 ? 1 : 0;

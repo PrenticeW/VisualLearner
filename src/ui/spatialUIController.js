@@ -185,7 +185,7 @@ export default class SpatialUIController {
     Object.entries({
       position: 'fixed',
       top: '100px',
-      right: '20px',
+      left: '20px',
       display: 'grid',
       'grid-template-columns': 'repeat(3, 40px)',
       'grid-gap': '5px',
@@ -198,15 +198,15 @@ export default class SpatialUIController {
     });
 
     const weightNames = [
-      'X.LU',
-      'X.U',
-      'X.RU',
-      'X.L',
-      'X',
-      'X.R',
-      'X.LD',
-      'X.D',
-      'X.RD',
+      'W.L.LU',
+      'W.L.U',
+      'W.L.RU',
+      'W.L.L',
+      'W.L',
+      'W.L.R',
+      'W.L.LD',
+      'W.L.D',
+      'W.L.RD',
     ];
     weightNames.forEach((name) => {
       const btn = p.createButton('');
@@ -215,7 +215,7 @@ export default class SpatialUIController {
       btn.style('border', '1px solid #800080');
       btn.style('border-radius', '5px');
       btn.style('font-size', '8px');
-      btn.html(name.replace('X.', ''));
+      btn.html(name.replace('W.L.', ''));
       btn.parent(this.weightObjectButtonContainer);
       btn.mousePressed(() => {}); // wired later
       this.weightObjectButtons[name] = btn;
