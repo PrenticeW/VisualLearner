@@ -31,14 +31,12 @@ new p5((p) => {
       spatialUIController: spatialUI,
     });
 
-    // ─── WIRE SPATIALUI → TEXT GRID ──────────────────────────────────────────
-    spatialUI.setGestureCallback(name => {
+    // ─── OPTIONAL SPATIALUI CALLBACKS ─────────────────────────────────────────
+    spatialUI.setGestureCallback((name) => {
       console.log('[main] gesture:', name);
-      systemUI.textFieldCtrl.addGestureName(name, systemUI.activeDot);
     });
-    spatialUI.setWeightCallback(name => {
+    spatialUI.setWeightCallback((name) => {
       console.log('[main] weight:', name);
-      systemUI.textFieldCtrl.addWeightName(name);
     });
 
     console.log('✅ All systems ready and UI wired');
