@@ -24,6 +24,7 @@ export default class SystemUIController {
     this.tempo = 60;
     this.duration = 8;
     this.popUpMode = false;
+    this.weightsVisible = false;
     this.systemRunning = false;
     this._activeDot = 0; // currently selected gesture row
 
@@ -81,6 +82,17 @@ export default class SystemUIController {
         this.timer.setDuration(this.duration);
         this.textFieldCtrl.updateLabels(this.timerMode, this.duration);
         this.buttonPanel.updateDurationLabel(`Duration: ${this.duration}`);
+      },
+      toggleWeights: () => {
+        this.weightsVisible = !this.weightsVisible;
+        if (this.weightsVisible) {
+          this.spatialUIController.showWeightButtons();
+        } else {
+          this.spatialUIController.hideWeightButtons();
+        }
+        this.buttonPanel.updateWeightsLabel(
+          `Weights: ${this.weightsVisible ? 'On' : 'Off'}`
+        );
       },
       copyState: () => this.copyState(),
       clearWeight: () => {
