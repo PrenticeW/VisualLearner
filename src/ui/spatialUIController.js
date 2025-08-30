@@ -196,6 +196,8 @@ export default class SpatialUIController {
     }).forEach(([prop, val]) => {
       this.weightObjectButtonContainer.style(prop, val);
     });
+    // hidden by default; toggled via show/hideWeightButtons
+    this.weightObjectButtonContainer.style('visibility', 'hidden');
 
     const weightNames = [
       'W.L.LU',
@@ -292,6 +294,16 @@ export default class SpatialUIController {
         btn.style('visibility', 'visible')
       );
     });
+  }
+
+  /** Hide the 40×40 weight buttons */
+  hideWeightButtons() {
+    this.weightObjectButtonContainer.style('visibility', 'hidden');
+  }
+
+  /** Show the 40×40 weight buttons */
+  showWeightButtons() {
+    this.weightObjectButtonContainer.style('visibility', 'visible');
   }
 
   /** Turn context-marker circles on */
