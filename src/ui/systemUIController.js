@@ -1,6 +1,5 @@
 // src/ui/systemUIController.js
 
-import TextFieldController from '../ui/textFieldController.js';
 import ButtonPanelController from '../ui/buttonPanelController.js';
 
 export default class SystemUIController {
@@ -26,18 +25,15 @@ export default class SystemUIController {
     this.popUpMode = false;
     this.weightsVisible = false;
     this.systemRunning = false;
-    this._activeDot = 0; // currently selected gesture row
 
-    // beat subdivision highlight
-    this._beatCount = 0;
+    // sequence bookkeeping
+    this.currentSequenceGroup = 0;
+    this.currentMeasure = null;
+    this.currentConfig = null;
 
     // weight/orb sequence
     this.weightSequence = [];
     this.weightIndex = 0;
-
-    // -- build text‐field grid --
-    this.textFieldCtrl = new TextFieldController(p);
-    this.textFieldCtrl.build();
 
     // -- build button panel --
     this.buttonPanel = new ButtonPanelController(p, {
@@ -45,7 +41,6 @@ export default class SystemUIController {
         this.timerMode = (this.timerMode + 1) % 4;
         const labels = ['Whole', 'One And', 'And One', 'Quarter'];
         this.timer.setTimerMode(this.timerMode);
-        this.textFieldCtrl.updateLabels(this.timerMode, this.duration);
         this.buttonPanel.updateTimerModeLabel(
           `Timer Mode: ${labels[this.timerMode]}`
         );
@@ -56,17 +51,18 @@ export default class SystemUIController {
           60000 / (this.tempo * subs);
       },
       setTempo: () => {
-  const t = parseInt(this.buttonPanel.getTempoValue(), 10);
-  if (t > 0) {
-    this.tempo = t;
-    this.timer.setTempo(t);
+        const t = parseInt(this.buttonPanel.getTempoValue(), 10);
+        if (t > 0) {
+          this.tempo = t;
+          this.timer.setTempo(t);
 
-    const subs = this.timer.getSubdivisionsPerBeat();
-    this.spatialUIController.dotController.tickIntervalMs = 60000 / (t * subs);
-  } else {
-    alert('Please enter a positive tempo');
-  }
-},
+          const subs = this.timer.getSubdivisionsPerBeat();
+          this.spatialUIController.dotController.tickIntervalMs =
+            60000 / (t * subs);
+        } else {
+          alert('Please enter a positive tempo');
+        }
+      },
       startStop: () => {
         this.systemRunning ? this._stopSystem() : this._startSystem();
       },
@@ -80,7 +76,6 @@ export default class SystemUIController {
       toggleDuration: () => {
         this.duration = this.duration === 8 ? 4 : 8;
         this.timer.setDuration(this.duration);
-        this.textFieldCtrl.updateLabels(this.timerMode, this.duration);
         this.buttonPanel.updateDurationLabel(`Duration: ${this.duration}`);
       },
       toggleWeights: () => {
@@ -95,31 +90,10 @@ export default class SystemUIController {
         );
       },
       copyState: () => this.copyState(),
-      clearWeight: () => {
-        this.textFieldCtrl.columns.forEach((c) => c.inputBottom.value(''));
-      },
-      clearGesture: () => {
-        this.textFieldCtrl.columns.forEach((c) => {
-          c.inputTop.value('');
-          if (c.inputTop2) c.inputTop2.value('');
-        });
-      },
       playSeq: () => this.loadFirstSequence(),
       nextSeq: () => this.loadNextSequence(),
-      setActiveDot: (idx) => {
-        this._activeDot = idx;
-        this.textFieldCtrl.highlightActiveDot(idx);
-      },
     });
     this.buttonPanel.build();
-    // initialize active dot highlight
-    this.textFieldCtrl.highlightActiveDot(this._activeDot);
-
-    // hook up timer highlight callback
-    this.timer.setHighlightCallback((beatCount, maxCols) => {
-      this._beatCount = beatCount;
-      this.textFieldCtrl.highlight(this._beatCount % maxCols);
-    });
 
     // advance dots/orbs on subdivision
     this.timer.on('subdivision', () => {
@@ -150,6 +124,17 @@ export default class SystemUIController {
   // ─── SYSTEM START / STOP ────────────────────────────────────────────────────
 
   _startSystem() {
+    if (!this.currentConfig) {
+      try {
+        this.currentConfig = this.sequenceManager.getGroupConfig(
+          this.currentSequenceGroup || 0
+        );
+      } catch (e) {
+        console.warn('No sequence config available');
+        this.currentConfig = { gestureSeq: [], weightSeq: [] };
+      }
+    }
+
     this.systemRunning = true;
     this.buttonPanel.buttons.startStop.html('Stop');
     this.spatialUIController.hideGestureButtons();
@@ -157,9 +142,8 @@ export default class SystemUIController {
     this.timer.start();
 
     // load gestures into dot controller(s)
-    const seq1 = this.textFieldCtrl.getGestureValues(0);
-    const seq2 = this.textFieldCtrl.getGestureValues(1);
-    const sequences = seq2.length > 0 ? [seq1, seq2] : [seq1];
+    const gestures = this.currentConfig.gestureSeq || [];
+    const sequences = gestures.length > 0 ? [gestures] : [];
     this.spatialUIController.dotController.loadSequences(sequences);
     this.spatialUIController.dotController.setPopUpMode(this.popUpMode);
     const subs = this.timer.getSubdivisionsPerBeat();
@@ -169,7 +153,7 @@ export default class SystemUIController {
     this.spatialUIController.dotController.start();
 
     // prime orb sequence
-    this.weightSequence = this.textFieldCtrl.getWeightValues();
+    this.weightSequence = this.currentConfig.weightSeq || [];
     if (this.weightSequence.length > 0) {
       const first = this.weightSequence[0];
       const parts = first.split('.');
@@ -190,7 +174,6 @@ export default class SystemUIController {
     this.buttonPanel.buttons.startStop.html('Go');
     this.spatialUIController.showGestureButtons();
     this.timer.stop();
-    this.textFieldCtrl.clearHighlights();
     this.spatialUIController.dotController.stop();
     this.spatialUIController.orbControllers.L.clearHighlight();
     this.spatialUIController.orbControllers.R.clearHighlight();
@@ -214,6 +197,7 @@ export default class SystemUIController {
     const cfg = this.sequenceManager.getGroupConfig(groupIndex);
     this.currentSequenceGroup = groupIndex;
     this.currentMeasure = cfg.measure;
+    this.currentConfig = cfg;
 
     // apply timerMode
     this.timerMode = cfg.timerMode;
@@ -222,7 +206,6 @@ export default class SystemUIController {
     this.buttonPanel.updateTimerModeLabel(
       `Timer Mode: ${modeLabels[cfg.timerMode]}`
     );
-    this.textFieldCtrl.updateLabels(cfg.timerMode, cfg.duration);
 
     // apply popUpMode
     this.popUpMode = cfg.popUpMode;
@@ -243,22 +226,14 @@ export default class SystemUIController {
       this.buttonPanel.updateDurationLabel(`Duration: ${cfg.duration}`);
     }
 
-    // fill grid inputs
-    this.textFieldCtrl.updateLabels(cfg.timerMode, cfg.duration);
-    this.textFieldCtrl.columns.forEach((col, i) => {
-      col.inputTop.value(cfg.gestureSeq[i] || '');
-      if (col.inputTop2) col.inputTop2.value('');
-      col.inputBottom.value(cfg.weightSeq[i] || '');
-    });
-
     this._startSystem();
   }
 
   // ─── COPY STATE ─────────────────────────────────────────────────────────────
 
   copyState() {
-    const gestureSeq = this.textFieldCtrl.getGestureValues();
-    const weightSeq = this.textFieldCtrl.getWeightValues();
+    const gestureSeq = this.currentConfig?.gestureSeq || [];
+    const weightSeq = this.currentConfig?.weightSeq || [];
     const state = {
       timerMode: this.timerMode,
       popUpMode: this.popUpMode,
@@ -286,19 +261,5 @@ export default class SystemUIController {
     this.p.textAlign(this.p.RIGHT, this.p.TOP);
     this.p.text(this.timer.getTimerDisplay(), this.p.width - 320, 110);
     this.p.pop();
-
-    // also ensure highlight is up to date
-    this.textFieldCtrl.highlight(this._beatCount % this._getMaxColumns());
-  }
-
-  // helper needed by render’s last line
-  _getMaxColumns() {
-    const subsMap = [1, 2, 2, 4];
-    const subs = subsMap[this.timerMode] || 1;
-    return this.duration * subs;
-  }
-
-  get activeDot() {
-    return this._activeDot;
   }
 }
