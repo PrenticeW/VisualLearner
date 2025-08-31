@@ -13,7 +13,7 @@ export default class TextFieldController {
     this.container = p.createDiv()
       .style('position', 'fixed')
       // Move down to make room for a single gesture object plus padding
-      .style('top', '100px')
+      .style('top', 'calc(100px + 1.75 * 20px)')
       .style('left', '0')
       .style('width', '100%')
       .style('height', '105px')
