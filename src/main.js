@@ -14,7 +14,7 @@ const sequences = new SequenceManager();
 
 
 new p5((p) => {
-  let systemUI, spatialUI, canvas, timeline;
+  let systemUI, spatialUI, canvas, timeline1, timeline2;
 
   p.preload = () => {
     sequences.preload(p);
@@ -33,8 +33,14 @@ new p5((p) => {
       spatialUIController: spatialUI,
     });
     new GlyphController();
-    timeline = new TimelineDisplay(p);
-    timeline.build();
+    const wrapper = p.createDiv('').id('timeline-wrapper');
+    timeline1 = new TimelineDisplay(p, 'timeline-display-1');
+    timeline1.build();
+    timeline1.container.parent(wrapper);
+
+    timeline2 = new TimelineDisplay(p, 'timeline-display-2');
+    timeline2.build();
+    timeline2.container.parent(wrapper);
 
     // ─── OPTIONAL SPATIALUI CALLBACKS ─────────────────────────────────────────
     spatialUI.setGestureCallback((name) => {
