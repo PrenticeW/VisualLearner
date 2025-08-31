@@ -32,7 +32,8 @@ export default class TimelineDisplay {
       const token = path.join('.');
       if (depth > 0) {
         const cls = depth === 1 ? 'dot' : 'dot sub-dot';
-        svg += `<circle data-token="${token}" class="${cls}" cx="${x}" cy="${y}" r="6"></circle>`;
+        const radius = depth === 1 ? 6 : 3;
+        svg += `<circle data-token="${token}" class="${cls}" cx="${x}" cy="${y}" r="${radius}"></circle>`;
         this.positionMap[token] = { x, y, parentX: parent.x, parentY: parent.y, depth };
       }
       if (depth === 2) return;
