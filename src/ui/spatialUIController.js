@@ -73,6 +73,8 @@ export default class SpatialUIController {
           btn.style('background-color', color);
           btn.style('border', 'none');
           btn.style('transform', 'rotate(45deg)');
+          btn.addClass('gesture-btn');
+          btn.attribute('data-name', name);
           btn.mousePressed(() => {}); // wired later
           this.buttons[name] = btn;
         });
@@ -227,6 +229,8 @@ export default class SpatialUIController {
       btn.style('border-radius', '5px');
       btn.style('font-size', '8px');
       btn.html(name.replace(/^W\.[LR]\./, ''));
+      btn.addClass('gesture-btn');
+      btn.attribute('data-name', name.replace(/^W\.[LR]\./, ''));
       btn.parent(this.weightObjectButtonContainer);
       btn.mousePressed(() => {}); // wired later
       this.weightObjectButtons[name] = btn;
