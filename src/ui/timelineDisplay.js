@@ -25,7 +25,8 @@ export default class TimelineDisplay {
     svg += `<circle class="outer" cx="${center}" cy="${center}" r="${spacing}" />`;
 
     const names = ['UL', 'U', 'UR', 'L', 'C', 'R', 'DL', 'D', 'DR'];
-    const generate = (path, x, y, step, depth, parent) => {
+    const subSpacing = 10;
+    const generate = (path, x, y, depth, parent) => {
       const token = path.join('.');
       if (depth > 0) {
         const cls = depth === 1 ? 'dot' : 'dot sub-dot';
@@ -34,16 +35,18 @@ export default class TimelineDisplay {
         this.positionMap[token] = { x, y, parentX: parent.x, parentY: parent.y, depth };
       }
       if (depth === 2) return;
+
+      const step = depth === 0 ? spacing : subSpacing;
       names.forEach((name) => {
         const dx = name.includes('L') ? -1 : name.includes('R') ? 1 : 0;
         const dy = name.includes('U') ? -1 : name.includes('D') ? 1 : 0;
         const nx = x + dx * step;
         const ny = y + dy * step;
-        generate([...path, name], nx, ny, step / 2, depth + 1, { x, y });
+        generate([...path, name], nx, ny, depth + 1, { x, y });
       });
     };
 
-    generate([], center, center, spacing, 0, { x: center, y: center });
+    generate([], center, center, 0, { x: center, y: center });
 
     svg += `</svg>`;
 
