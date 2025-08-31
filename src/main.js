@@ -32,7 +32,6 @@ new p5((p) => {
       canvasRenderer: canvas,
       spatialUIController: spatialUI,
     });
-    new GlyphController();
     const wrapper = p.createDiv('').id('timeline-wrapper');
     timeline1 = new TimelineDisplay(p, 'timeline-display-1');
     timeline1.build();
@@ -41,6 +40,8 @@ new p5((p) => {
     timeline2 = new TimelineDisplay(p, 'timeline-display-2');
     timeline2.build();
     timeline2.container.parent(wrapper);
+
+    new GlyphController({ timelineDisplays: { L: timeline1, R: timeline2 } });
 
     // ─── OPTIONAL SPATIALUI CALLBACKS ─────────────────────────────────────────
     spatialUI.setGestureCallback((name) => {
