@@ -9,6 +9,7 @@ export default class TimelineDisplay {
     this.center = 60;
     this.spacing = 40;
     this.positionMap = {};
+    this.tokenMap = {};
   }
 
   build() {
@@ -20,6 +21,7 @@ export default class TimelineDisplay {
     const spacing = this.spacing;
 
     this.positionMap = {};
+    this.tokenMap = {};
 
     let svg = `<svg viewBox="0 0 ${center * 2} ${center * 2}">`;
     svg += `<circle class="outer" cx="${center}" cy="${center}" r="${spacing}" />`;
@@ -30,7 +32,7 @@ export default class TimelineDisplay {
       const token = path.join('.');
       if (depth > 0) {
         const cls = depth === 1 ? 'dot' : 'dot sub-dot';
-        svg += `<circle class="${cls}" cx="${x}" cy="${y}" r="6"></circle>`;
+        svg += `<circle data-token="${token}" class="${cls}" cx="${x}" cy="${y}" r="6"></circle>`;
         this.positionMap[token] = { x, y, parentX: parent.x, parentY: parent.y, depth };
       }
       if (depth === 2) return;
@@ -51,6 +53,11 @@ export default class TimelineDisplay {
 
     this.container.html(svg);
     this.svg = this.container.elt.querySelector('svg');
+
+    Object.keys(this.positionMap).forEach((token) => {
+      const el = this.svg.querySelector(`[data-token="${token}"]`);
+      if (el) this.tokenMap[token] = el;
+    });
   }
 
   getPosition(path) {
@@ -72,18 +79,9 @@ export default class TimelineDisplay {
   addMarker(path, ratio = 0) {
     if (!this.svg) return;
 
-    const pos = this.getPosition(path);
-    if (!pos) return;
+    const circle = this.svg.querySelector(`[data-token="${path}"]`);
+    if (!circle) return;
 
-    const baseX = pos.depth > 1 ? pos.parentX : pos.x;
-    const x = ratio * (this.center * 2) + (baseX - this.center);
-    const y = pos.y;
-
-    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-    circle.setAttribute('class', 'glyph-marker');
-    circle.setAttribute('cx', x);
-    circle.setAttribute('cy', y);
-    circle.setAttribute('r', 6);
-    this.svg.appendChild(circle);
+    circle.classList.add('glyph-marker');
   }
 }
