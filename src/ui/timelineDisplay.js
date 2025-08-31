@@ -76,7 +76,8 @@ export default class TimelineDisplay {
     const pos = this.getPosition(path);
     if (!pos) return;
 
-    const x = ratio * (this.center * 2) + (pos.x - this.center);
+    const baseX = pos.depth > 1 ? pos.parentX : pos.x;
+    const x = ratio * (this.center * 2) + (baseX - this.center);
     const y = pos.y;
 
     const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
