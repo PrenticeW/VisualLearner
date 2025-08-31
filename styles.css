@@ -87,27 +87,8 @@ h1 {
   stroke: #ccc;
   fill: none;
   stroke-width: 1;
-  animation: timelineFlashStroke 1s infinite;
 }
 
 #timeline-display .dot {
   fill: #ccc;
-  animation: timelineFlashFill 1s infinite;
-}
-
-#timeline-display text {
-  font-size: 10px;
-  fill: #000;
-  text-anchor: middle;
-  dominant-baseline: middle;
-}
-
-@keyframes timelineFlashStroke {
-  0%, 100% { stroke: #ccc; }
-  50% { stroke: #ff0000; }
-}
-
-@keyframes timelineFlashFill {
-  0%, 100% { fill: #ccc; }
-  50% { fill: #ff0000; }
 }
