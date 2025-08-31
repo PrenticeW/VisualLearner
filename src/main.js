@@ -5,6 +5,7 @@ import SequenceManager from './managers/sequenceManager.js';
 import SystemUIController from './ui/systemUIController.js';
 import CanvasRenderer from './render/canvasRenderer.js';
 import SpatialUIController from './ui/spatialUIController.js';
+import GlyphController from './ui/glyphController.js';
 
 
 const timer = new TimerManager();
@@ -30,6 +31,7 @@ new p5((p) => {
       canvasRenderer: canvas,
       spatialUIController: spatialUI,
     });
+    new GlyphController();
 
     // ─── OPTIONAL SPATIALUI CALLBACKS ─────────────────────────────────────────
     spatialUI.setGestureCallback((name) => {

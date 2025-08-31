@@ -33,6 +33,8 @@ export default class ButtonPanelController {
         .style('font-size', '10px')
         .parent(this.container)
         .mousePressed(() => this.handlers[key]?.());
+      btn.addClass('gesture-btn');
+      btn.attribute('data-name', label);
       this.buttons[key] = btn;
     };
 
