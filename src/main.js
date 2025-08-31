@@ -59,4 +59,6 @@ new p5((p) => {
     spatialUI.render(p.deltaTime);
     systemUI.render(p.deltaTime);
   };
+
+  p.windowResized = () => canvas.recenter();
 });
