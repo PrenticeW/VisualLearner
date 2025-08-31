@@ -76,19 +76,8 @@ export default class TimelineDisplay {
     const pos = this.getPosition(path);
     if (!pos) return;
 
-    const timelineX = ratio * (this.center * 2);
-    let x = timelineX + (pos.x - this.center);
-    let y = pos.y;
-
-    // For top-level positions, maintain outward offset
-    if (pos.depth === 1 && path !== 'C') {
-      const dx = pos.x - pos.parentX;
-      const dy = pos.y - pos.parentY;
-      const mag = Math.sqrt(dx * dx + dy * dy) || 1;
-      const offset = 16;
-      x = timelineX + (dx / mag) * offset;
-      y = pos.y + (dy / mag) * offset;
-    }
+    const x = ratio * (this.center * 2) + (pos.x - this.center);
+    const y = pos.y;
 
     const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
     circle.setAttribute('class', 'glyph-marker');
