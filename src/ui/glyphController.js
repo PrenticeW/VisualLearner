@@ -45,10 +45,10 @@ export default class GlyphController {
   _markDisplay(token) {
     const parts = token.split('.');
     const side = parts[0];
-    const pos = parts[1] || 'C';
+    const posPath = parts.slice(1).join('.') || 'C';
     const display = this.timelineDisplays[side];
-    if (display && pos) {
-      display.addMarker(pos);
+    if (display) {
+      display.addMarker(posPath);
     }
   }
 }
