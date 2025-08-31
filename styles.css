@@ -96,15 +96,12 @@ h1 {
 }
 
 .timeline-display .dot {
-  fill: none;
-  stroke: #ccc;
-  stroke-width: 1;
+  fill: #ccc;
 }
 
 .timeline-display .sub-dot {
   fill: none;
-  stroke: #eee;
-  stroke-width: 1;
+  stroke: none;
 }
 
 .timeline-display .glyph-marker {
