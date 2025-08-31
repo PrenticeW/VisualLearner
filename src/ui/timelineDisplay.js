@@ -1,15 +1,17 @@
 // src/ui/timelineDisplay.js
 
 export default class TimelineDisplay {
-  constructor(p) {
+  constructor(p, id) {
     this.p = p;
+    this.id = id;
     this.container = null;
   }
 
   build() {
     this.container = this.p
       .createDiv('')
-      .id('timeline-display');
+      .id(this.id)
+      .class('timeline-display');
     const center = 60;
     const spacing = 40;
 
