@@ -27,7 +27,7 @@ export default class TimelineDisplay {
     svg += `<circle class="outer" cx="${center}" cy="${center}" r="${spacing}" />`;
 
     const names = ['UL', 'U', 'UR', 'L', 'C', 'R', 'DL', 'D', 'DR'];
-    const subSpacing = 10;
+    const subSpacing = 15;
     const generate = (path, x, y, depth, parent) => {
       const token = path.join('.');
       if (depth > 0) {
