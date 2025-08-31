@@ -49,10 +49,9 @@ h1 {
   position: fixed;
   right: 20px;
   top: 50%;
-  transform: translateY(-50%);
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
+  transform: translateY(-50%) rotate(45deg);
+  width: 15px;
+  height: 15px;
   background: #3fc009;
   cursor: grab;
   z-index: 1000;
