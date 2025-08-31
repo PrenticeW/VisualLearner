@@ -33,7 +33,7 @@ export default class DotController {
     this.currentIndex = 1;
     this.moving = false;
 
-    const first = this.sequence[0] || 'L';
+    const first = this.sequence[0] || 'L.C';
     this.currentPos = this.gesturePositions[first];
   }
 

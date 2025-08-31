@@ -66,8 +66,8 @@ export default class SpatialUIController {
         this.prefix = prefix;
         this.buttons = {};
 
-        ['UL', 'U', 'UR', 'L', '', 'R', 'DL', 'D', 'DR'].forEach((sfx) => {
-          const name = sfx ? `${prefix}.${sfx}` : prefix;
+        ['UL', 'U', 'UR', 'L', 'C', 'R', 'DL', 'D', 'DR'].forEach((sfx) => {
+          const name = `${prefix}.${sfx}`;
           const btn = p.createButton('');
           btn.size(15, 15);
           btn.style('background-color', color);
@@ -88,7 +88,7 @@ export default class SpatialUIController {
           [`${this.prefix}.U`]: { x: x, y: y - s },
           [`${this.prefix}.UR`]: { x: x + s, y: y - s },
           [`${this.prefix}.L`]: { x: x - s, y: y },
-          [`${this.prefix}`]: { x: x, y: y },
+          [`${this.prefix}.C`]: { x: x, y: y },
           [`${this.prefix}.R`]: { x: x + s, y: y },
           [`${this.prefix}.DL`]: { x: x - s, y: y + s },
           [`${this.prefix}.D`]: { x: x, y: y + s },
@@ -111,14 +111,14 @@ export default class SpatialUIController {
     const buildCluster = (centerX, basePrefix) => {
       return [
         new GestureObject({ x: centerX, y: cy }, `${basePrefix}`, secondary),
-        new GestureObject({ x: centerX, y: cy - 100 }, `${basePrefix}U`, primary),
-        new GestureObject({ x: centerX, y: cy + 100 }, `${basePrefix}D`, primary),
+        new GestureObject({ x: centerX, y: cy - 100 }, `${basePrefix}.U`, primary),
+        new GestureObject({ x: centerX, y: cy + 100 }, `${basePrefix}.D`, primary),
         new GestureObject(
           {
             x: centerX + this.hOffset - this.pairSpacing - this.extraGap / 2,
             y: cy - 100,
           },
-          `${basePrefix}UR`,
+          `${basePrefix}.UR`,
           secondary
         ),
         new GestureObject(
@@ -126,7 +126,7 @@ export default class SpatialUIController {
             x: centerX + this.hOffset - this.pairSpacing - this.extraGap / 2,
             y: cy,
           },
-          `${basePrefix}R`,
+          `${basePrefix}.R`,
           primary
         ),
         new GestureObject(
@@ -134,7 +134,7 @@ export default class SpatialUIController {
             x: centerX + this.hOffset - this.pairSpacing - this.extraGap / 2,
             y: cy + 100,
           },
-          `${basePrefix}DR`,
+          `${basePrefix}.DR`,
           secondary
         ),
         new GestureObject(
@@ -142,7 +142,7 @@ export default class SpatialUIController {
             x: centerX - this.hOffset + this.pairSpacing + this.extraGap / 2,
             y: cy - 100,
           },
-          `${basePrefix}UL`,
+          `${basePrefix}.UL`,
           secondary
         ),
         new GestureObject(
@@ -150,7 +150,7 @@ export default class SpatialUIController {
             x: centerX - this.hOffset + this.pairSpacing + this.extraGap / 2,
             y: cy,
           },
-          `${basePrefix}L`,
+          `${basePrefix}.L`,
           primary
         ),
         new GestureObject(
@@ -158,7 +158,7 @@ export default class SpatialUIController {
             x: centerX - this.hOffset + this.pairSpacing + this.extraGap / 2,
             y: cy + 100,
           },
-          `${basePrefix}DL`,
+          `${basePrefix}.DL`,
           secondary
         ),
       ];
@@ -248,8 +248,8 @@ export default class SpatialUIController {
       moveDurationMs: 500,
     });
     this.dotController.loadSequences([
-      ['L', 'L.U', 'L.D', 'L.L', 'L.R'],
-      ['R', 'R.U', 'R.D', 'R.L', 'R.R'],
+      ['L.C', 'L.U', 'L.D', 'L.L', 'L.R'],
+      ['R.C', 'R.U', 'R.D', 'R.L', 'R.R'],
     ]);
   }
 
