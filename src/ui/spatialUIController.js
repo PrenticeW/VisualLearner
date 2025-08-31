@@ -267,8 +267,10 @@ export default class SpatialUIController {
         // filter out the center markers (prefix 'L' and 'R')
         .filter((go) => go.prefix !== 'L' && go.prefix !== 'R')
         .forEach((go) => {
-          const { x, y } = go.center;
-          this.p.ellipse(x, y, 45, 45);
+          const points = Object.values(go.getPositions());
+          points.forEach((pt) => {
+            this.p.ellipse(pt.x, pt.y, 10, 10);
+          });
         });
       this.p.pop();
     }
