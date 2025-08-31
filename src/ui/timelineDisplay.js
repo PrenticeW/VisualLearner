@@ -62,7 +62,7 @@ export default class TimelineDisplay {
       const dx = x - this.center;
       const dy = y - this.center;
       const mag = Math.sqrt(dx * dx + dy * dy) || 1;
-      const offset = 10;
+      const offset = 16;
       x = this.center + (dx / mag) * (mag + offset);
       y = this.center + (dy / mag) * (mag + offset);
     }
