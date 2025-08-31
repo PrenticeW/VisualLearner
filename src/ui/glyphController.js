@@ -51,12 +51,11 @@ export default class GlyphController {
   }
 
   _markDisplay(token, ratio) {
-    const parts = token.split('.');
-    const side = parts[0];
-    const posPath = parts.slice(1).join('.') || 'C';
+    const [side, ...pathParts] = token.split('.');
     const display = this.timelineDisplays[side];
     if (display) {
-      display.addMarker(posPath, ratio);
+      const path = pathParts.join('.') || 'C';
+      display.addMarker(path, ratio);
     }
   }
 }

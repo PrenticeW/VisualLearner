@@ -8,6 +8,7 @@ export default class TimelineDisplay {
     this.svg = null;
     this.center = 60;
     this.spacing = 40;
+    this.positionMap = {};
   }
 
   build() {
@@ -18,23 +19,32 @@ export default class TimelineDisplay {
     const center = this.center;
     const spacing = this.spacing;
 
-    const dots = [
-      { name: 'UL', x: center - spacing, y: center - spacing },
-      { name: 'U', x: center, y: center - spacing },
-      { name: 'UR', x: center + spacing, y: center - spacing },
-      { name: 'L', x: center - spacing, y: center },
-      { name: 'C', x: center, y: center },
-      { name: 'R', x: center + spacing, y: center },
-      { name: 'DL', x: center - spacing, y: center + spacing },
-      { name: 'D', x: center, y: center + spacing },
-      { name: 'DR', x: center + spacing, y: center + spacing },
-    ];
+    this.positionMap = {};
 
     let svg = `<svg viewBox="0 0 ${center * 2} ${center * 2}">`;
     svg += `<circle class="outer" cx="${center}" cy="${center}" r="${spacing}" />`;
-    dots.forEach((d) => {
-      svg += `<circle class="dot" cx="${d.x}" cy="${d.y}" r="6"></circle>`;
-    });
+
+    const names = ['UL', 'U', 'UR', 'L', 'C', 'R', 'DL', 'D', 'DR'];
+    const generate = (path, x, y, step, depth, parent) => {
+      const token = path.join('.');
+      if (depth > 0) {
+        const cls = depth === 1 ? 'dot' : 'dot sub-dot';
+        const style = depth === 1 ? '' : ' style="opacity:0"';
+        svg += `<circle class="${cls}" cx="${x}" cy="${y}" r="6"${style}></circle>`;
+        this.positionMap[token] = { x, y, parentX: parent.x, parentY: parent.y, depth };
+      }
+      if (depth === 2) return;
+      names.forEach((name) => {
+        const dx = name.includes('L') ? -1 : name.includes('R') ? 1 : 0;
+        const dy = name.includes('U') ? -1 : name.includes('D') ? 1 : 0;
+        const nx = x + dx * step;
+        const ny = y + dy * step;
+        generate([...path, name], nx, ny, step / 2, depth + 1, { x, y });
+      });
+    };
+
+    generate([], center, center, spacing, 0, { x: center, y: center });
+
     svg += `</svg>`;
 
     this.container.html(svg);
@@ -42,52 +52,14 @@ export default class TimelineDisplay {
   }
 
   getPosition(path) {
-    let x = this.center;
-    let y = this.center;
-    let spacing = this.spacing;
-    let parentX = x;
-    let parentY = y;
-    const segments = path ? path.split('.') : [];
-    segments.forEach((seg) => {
-      parentX = x;
-      parentY = y;
-      switch (seg) {
-        case 'UL':
-          x -= spacing;
-          y -= spacing;
-          break;
-        case 'U':
-          y -= spacing;
-          break;
-        case 'UR':
-          x += spacing;
-          y -= spacing;
-          break;
-        case 'L':
-          x -= spacing;
-          break;
-        case 'C':
-          break;
-        case 'R':
-          x += spacing;
-          break;
-        case 'DL':
-          x -= spacing;
-          y += spacing;
-          break;
-        case 'D':
-          y += spacing;
-          break;
-        case 'DR':
-          x += spacing;
-          y += spacing;
-          break;
-        default:
-          break;
-      }
-      spacing /= 2;
-    });
-    return { x, y, parentX, parentY };
+    // legacy helper retained for compatibility; now uses positionMap
+    return this.positionMap[path] || {
+      x: this.center,
+      y: this.center,
+      parentX: this.center,
+      parentY: this.center,
+      depth: 0,
+    };
   }
 
   /**
@@ -98,21 +70,21 @@ export default class TimelineDisplay {
   addMarker(path, ratio = 0) {
     if (!this.svg) return;
 
-    const { x: baseX, y: baseY, parentX, parentY } = this.getPosition(path);
-    const timelineX = ratio * (this.center * 2);
-    let x = timelineX;
-    let y = baseY;
+    const pos = this.getPosition(path);
+    if (!pos) return;
 
-    // for non-center positions, offset outward slightly
-    const segments = path.split('.');
-    const last = segments[segments.length - 1] || 'C';
-    if (last !== 'C') {
-      const dx = baseX - parentX;
-      const dy = baseY - parentY;
+    const timelineX = ratio * (this.center * 2);
+    let x = timelineX + (pos.x - this.center);
+    let y = pos.y;
+
+    // For top-level positions, maintain outward offset
+    if (pos.depth === 1 && path !== 'C') {
+      const dx = pos.x - pos.parentX;
+      const dy = pos.y - pos.parentY;
       const mag = Math.sqrt(dx * dx + dy * dy) || 1;
       const offset = 16;
       x = timelineX + (dx / mag) * offset;
-      y = baseY + (dy / mag) * offset;
+      y = pos.y + (dy / mag) * offset;
     }
 
     const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
