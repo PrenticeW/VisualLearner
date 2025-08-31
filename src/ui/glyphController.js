@@ -28,7 +28,15 @@ export default class GlyphController {
       btn.addEventListener('drop', (e) => {
         e.preventDefault();
         btn.style.backgroundColor = '#3fc009';
+
         const name = btn.dataset.name || btn.textContent.trim();
+
+        // Determine horizontal ratio of drop within the gesture grid
+        const container = btn.parentElement || document.body;
+        const rect = container.getBoundingClientRect();
+        let ratio = (e.clientX - rect.left) / rect.width;
+        ratio = Math.min(Math.max(ratio, 0), 1);
+
         const field = document.createElement('input');
         field.type = 'text';
         field.value = name;
@@ -37,18 +45,18 @@ export default class GlyphController {
         field.style.fontSize = '8px';
         field.style.height = '20px';
         this.bar.appendChild(field);
-        this._markDisplay(name);
+        this._markDisplay(name, ratio);
       });
     });
   }
 
-  _markDisplay(token) {
+  _markDisplay(token, ratio) {
     const parts = token.split('.');
     const side = parts[0];
     const posPath = parts.slice(1).join('.') || 'C';
     const display = this.timelineDisplays[side];
     if (display) {
-      display.addMarker(posPath);
+      display.addMarker(posPath, ratio);
     }
   }
 }

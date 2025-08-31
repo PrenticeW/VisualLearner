@@ -91,14 +91,16 @@ export default class TimelineDisplay {
   }
 
   /**
-   * Add a green marker outside the dot matching the given path.
+   * Add a green marker at the given path and horizontal ratio.
    * @param {string} path dotted path such as 'UR.DR'
+   * @param {number} ratio value from 0–1 indicating timeline position
    */
-  addMarker(path) {
+  addMarker(path, ratio = 0) {
     if (!this.svg) return;
 
     const { x: baseX, y: baseY, parentX, parentY } = this.getPosition(path);
-    let x = baseX;
+    const timelineX = ratio * (this.center * 2);
+    let x = timelineX;
     let y = baseY;
 
     // for non-center positions, offset outward slightly
@@ -109,11 +111,15 @@ export default class TimelineDisplay {
       const dy = baseY - parentY;
       const mag = Math.sqrt(dx * dx + dy * dy) || 1;
       const offset = 16;
-      x = baseX + (dx / mag) * offset;
+      x = timelineX + (dx / mag) * offset;
       y = baseY + (dy / mag) * offset;
     }
 
-    const circle = `<circle class="glyph-marker" cx="${x}" cy="${y}" r="6"></circle>`;
-    this.svg.insertAdjacentHTML('beforeend', circle);
+    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    circle.setAttribute('class', 'glyph-marker');
+    circle.setAttribute('cx', x);
+    circle.setAttribute('cy', y);
+    circle.setAttribute('r', 6);
+    this.svg.appendChild(circle);
   }
 }
