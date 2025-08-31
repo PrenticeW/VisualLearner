@@ -44,3 +44,26 @@ h1 {
   font-weight: bold;
   font-size: 1.5rem;
 }
+
+#glyph {
+  position: fixed;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: #3fc009;
+  cursor: grab;
+  z-index: 1000;
+}
+
+#selection-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  display: flex;
+  gap: 6px;
+  padding: 6px;
+  z-index: 1000;
+}
