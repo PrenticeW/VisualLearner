@@ -9,7 +9,14 @@ export default class GlyphController {
 
   _setupGlyph() {
     this.glyph.addEventListener('dragstart', (e) => {
+      const clone = this.glyph.cloneNode(true);
+      clone.style.position = 'absolute';
+      clone.style.top = '-9999px';
+      clone.style.right = '-9999px';
+      document.body.appendChild(clone);
+      e.dataTransfer.setDragImage(clone, 7.5, 7.5);
       e.dataTransfer.setData('text/plain', 'glyph');
+      setTimeout(() => document.body.removeChild(clone), 0);
     });
   }
 
