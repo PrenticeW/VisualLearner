@@ -99,6 +99,10 @@ h1 {
   fill: #ccc;
 }
 
+.timeline-display .sub-dot {
+  fill: #eee;
+}
+
 .timeline-display .glyph-marker {
   fill: #3fc009;
 }
