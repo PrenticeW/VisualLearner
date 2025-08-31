@@ -6,6 +6,7 @@ import SystemUIController from './ui/systemUIController.js';
 import CanvasRenderer from './render/canvasRenderer.js';
 import SpatialUIController from './ui/spatialUIController.js';
 import GlyphController from './ui/glyphController.js';
+import TimelineDisplay from './ui/timelineDisplay.js';
 
 
 const timer = new TimerManager();
@@ -13,7 +14,7 @@ const sequences = new SequenceManager();
 
 
 new p5((p) => {
-  let systemUI, spatialUI, canvas;
+  let systemUI, spatialUI, canvas, timeline;
 
   p.preload = () => {
     sequences.preload(p);
@@ -32,6 +33,8 @@ new p5((p) => {
       spatialUIController: spatialUI,
     });
     new GlyphController();
+    timeline = new TimelineDisplay(p);
+    timeline.build();
 
     // ─── OPTIONAL SPATIALUI CALLBACKS ─────────────────────────────────────────
     spatialUI.setGestureCallback((name) => {
