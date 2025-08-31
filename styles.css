@@ -98,3 +98,7 @@ h1 {
 .timeline-display .dot {
   fill: #ccc;
 }
+
+.timeline-display .glyph-marker {
+  fill: #3fc009;
+}

@@ -1,7 +1,8 @@
 export default class GlyphController {
-  constructor() {
+  constructor({ timelineDisplays = {} } = {}) {
     this.glyph = document.getElementById('glyph');
     this.bar = document.getElementById('selection-bar');
+    this.timelineDisplays = timelineDisplays;
     if (!this.glyph || !this.bar) return;
     this._setupGlyph();
     this._setupDropTargets();
@@ -36,7 +37,18 @@ export default class GlyphController {
         field.style.fontSize = '8px';
         field.style.height = '20px';
         this.bar.appendChild(field);
+        this._markDisplay(name);
       });
     });
+  }
+
+  _markDisplay(token) {
+    const parts = token.split('.');
+    const side = parts[0];
+    const pos = parts[1] || 'C';
+    const display = this.timelineDisplays[side];
+    if (display && pos) {
+      display.addMarker(pos);
+    }
   }
 }
