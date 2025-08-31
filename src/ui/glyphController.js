@@ -32,6 +32,9 @@ export default class GlyphController {
         field.type = 'text';
         field.value = name;
         field.readOnly = true;
+        field.style.width = '56px';
+        field.style.fontSize = '8px';
+        field.style.height = '20px';
         this.bar.appendChild(field);
       });
     });

@@ -60,7 +60,7 @@ h1 {
 
 #selection-bar {
   position: fixed;
-  top: 0;
+  top: 100px;
   left: 0;
   display: flex;
   gap: 6px;
