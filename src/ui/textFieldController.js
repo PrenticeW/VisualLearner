@@ -11,16 +11,17 @@ export default class TextFieldController {
   build() {
     const p = this.p;
     this.container = p.createDiv()
-      .style('position','fixed')
-      .style('top','0')
-      .style('left','0')
-      .style('width','100%')
-      .style('height','105px')
-      .style('background','rgba(255,255,255,0.8)')
-      .style('padding','5px')
-      .style('display','flex')
-      .style('overflow-x','auto')
-      .style('z-index','1000');
+      .style('position', 'fixed')
+      // Move down to make room for a single gesture object plus padding
+      .style('top', '100px')
+      .style('left', '0')
+      .style('width', '100%')
+      .style('height', '105px')
+      .style('background', 'rgba(255,255,255,0.8)')
+      .style('padding', '5px')
+      .style('display', 'flex')
+      .style('overflow-x', 'auto')
+      .style('z-index', '1000');
 
     for (let i = 0; i < this.maxCols; i++) {
       const col = p.createDiv()
@@ -31,22 +32,27 @@ export default class TextFieldController {
         .parent(this.container);
 
       const inputTop = p.createInput('')
-        .style('width','40px').style('height','20px')
-        .style('font-size','10px')
+        // width sized to fit longest gesture name (e.g., "R.UR.UR")
+        .style('width', '56px')
+        .style('height', '20px')
+        .style('font-size', '8px')
         .parent(col);
 
       const inputTop2 = p.createInput('')
-        .style('width','40px').style('height','20px')
-        .style('font-size','10px')
+        .style('width', '56px')
+        .style('height', '20px')
+        .style('font-size', '8px')
         .parent(col);
 
       const inputBottom = p.createInput('')
-        .style('width','40px').style('height','20px')
-        .style('font-size','10px')
+        .style('width', '56px')
+        .style('height', '20px')
+        .style('font-size', '8px')
         .parent(col);
 
       const label = p.createSpan('')
-        .style('font-size','10px')
+        .style('font-size', '8px')
+        .style('width', '56px')
         .parent(col);
 
       this.columns.push({ inputTop, inputTop2, inputBottom, label });
