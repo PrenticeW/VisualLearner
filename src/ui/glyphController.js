@@ -1,23 +1,26 @@
 export default class GlyphController {
   constructor({ timelineDisplays = {} } = {}) {
-    this.glyph = document.getElementById('glyph');
+    this.glyphs = document.querySelectorAll('.glyph');
     this.bar = document.getElementById('selection-bar');
     this.timelineDisplays = timelineDisplays;
-    if (!this.glyph || !this.bar) return;
-    this._setupGlyph();
+    if (!this.glyphs.length || !this.bar) return;
+    this._setupGlyphs();
     this._setupDropTargets();
   }
 
-  _setupGlyph() {
-    this.glyph.addEventListener('dragstart', (e) => {
-      const clone = this.glyph.cloneNode(true);
-      clone.style.position = 'absolute';
-      clone.style.top = '-9999px';
-      clone.style.right = '-9999px';
-      document.body.appendChild(clone);
-      e.dataTransfer.setDragImage(clone, 7.5, 7.5);
-      e.dataTransfer.setData('text/plain', 'glyph');
-      setTimeout(() => document.body.removeChild(clone), 0);
+  _setupGlyphs() {
+    this.glyphs.forEach((glyph) => {
+      glyph.addEventListener('dragstart', (e) => {
+        const clone = glyph.cloneNode(true);
+        clone.style.position = 'absolute';
+        clone.style.top = '-9999px';
+        clone.style.right = '-9999px';
+        document.body.appendChild(clone);
+        const rect = glyph.getBoundingClientRect();
+        e.dataTransfer.setDragImage(clone, rect.width / 2, rect.height / 2);
+        e.dataTransfer.setData('text/plain', 'glyph');
+        setTimeout(() => document.body.removeChild(clone), 0);
+      });
     });
   }
 
