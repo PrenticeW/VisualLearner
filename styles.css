@@ -61,12 +61,20 @@ h1 {
     border-radius: 50%;
   }
 
-  #glyph2 {
-    right: 50px; /* adjust position as needed */
-    top: 50%;
-    transform: translateY(-50%);
-    width: 40px;
-    height: 40px;
+  #glyph2a,
+  #glyph2b {
+    width: 14px;
+    height: 14px;
+  }
+
+  #glyph2a {
+    right: 77px;
+    top: calc(50% + 7px);
+  }
+
+  #glyph2b {
+    right: 49px;
+    top: calc(50% - 21px);
   }
 
 #selection-bar {

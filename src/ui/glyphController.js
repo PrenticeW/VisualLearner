@@ -18,7 +18,8 @@ export default class GlyphController {
         document.body.appendChild(clone);
         const rect = glyph.getBoundingClientRect();
         e.dataTransfer.setDragImage(clone, rect.width / 2, rect.height / 2);
-        e.dataTransfer.setData('text/plain', 'glyph');
+        const id = glyph.dataset.glyph || 'glyph';
+        e.dataTransfer.setData('text/plain', id);
         setTimeout(() => document.body.removeChild(clone), 0);
       });
     });
@@ -32,6 +33,7 @@ export default class GlyphController {
         e.preventDefault();
         btn.style.backgroundColor = '#3fc009';
 
+        const glyphId = e.dataTransfer.getData('text/plain');
         const name = btn.dataset.name || btn.textContent.trim();
 
         // Determine horizontal ratio of drop within the gesture grid
@@ -47,6 +49,9 @@ export default class GlyphController {
         field.style.width = '56px';
         field.style.fontSize = '8px';
         field.style.height = '20px';
+        if (glyphId) {
+          field.dataset.glyph = glyphId;
+        }
         this.bar.appendChild(field);
         this._markDisplay(name, ratio);
       });
