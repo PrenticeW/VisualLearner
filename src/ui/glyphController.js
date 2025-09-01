@@ -1,27 +1,43 @@
 export default class GlyphController {
   constructor({ timelineDisplays = {} } = {}) {
-    this.glyphs = document.querySelectorAll('.glyph');
+    this.glyphSelector = '.glyph, #glyph2';
+    this.glyphs = document.querySelectorAll(this.glyphSelector);
     this.bar = document.getElementById('selection-bar');
     this.timelineDisplays = timelineDisplays;
+    this.currentGlyph = null;
+    this.dragOffset = { x: 0, y: 0 };
     if (!this.glyphs.length || !this.bar) return;
     this._setupGlyphs();
     this._setupDropTargets();
   }
 
   _setupGlyphs() {
-    this.glyphs.forEach((glyph) => {
-      glyph.addEventListener('dragstart', (e) => {
-        const clone = glyph.cloneNode(true);
-        clone.style.position = 'absolute';
-        clone.style.top = '-9999px';
-        clone.style.right = '-9999px';
-        document.body.appendChild(clone);
-        const rect = glyph.getBoundingClientRect();
-        e.dataTransfer.setDragImage(clone, rect.width / 2, rect.height / 2);
-        const id = glyph.dataset.glyph || 'glyph';
-        e.dataTransfer.setData('text/plain', id);
-        setTimeout(() => document.body.removeChild(clone), 0);
-      });
+    document.addEventListener('dragstart', (e) => {
+      const glyph = e.target.closest(this.glyphSelector);
+      if (!glyph) return;
+      this.currentGlyph = glyph;
+      const rect = glyph.getBoundingClientRect();
+      this.dragOffset.x = e.clientX - rect.left;
+      this.dragOffset.y = e.clientY - rect.top;
+      const clone = glyph.cloneNode(true);
+      clone.style.position = 'absolute';
+      clone.style.top = '-9999px';
+      clone.style.right = '-9999px';
+      document.body.appendChild(clone);
+      e.dataTransfer.setDragImage(clone, rect.width / 2, rect.height / 2);
+      const id = glyph.dataset.glyph || 'glyph';
+      e.dataTransfer.setData('text/plain', id);
+      setTimeout(() => document.body.removeChild(clone), 0);
+    });
+
+    document.addEventListener('dragend', (e) => {
+      if (!this.currentGlyph) return;
+      const left = e.clientX - this.dragOffset.x;
+      const top = e.clientY - this.dragOffset.y;
+      this.currentGlyph.style.position = 'absolute';
+      this.currentGlyph.style.left = `${left}px`;
+      this.currentGlyph.style.top = `${top}px`;
+      this.currentGlyph = null;
     });
   }
 
@@ -50,7 +66,7 @@ export default class GlyphController {
         field.style.fontSize = '8px';
         field.style.height = '20px';
         if (glyphId) {
-          field.dataset.glyph = glyphId;
+          field.dataset.glyph = glyphId.startsWith('glyph2') ? 'glyph2' : glyphId;
         }
         this.bar.appendChild(field);
         this._markDisplay(name, ratio);
