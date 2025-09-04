@@ -8,6 +8,7 @@ export default class GlyphController {
     this.currentProng = null;
     this.pendingPairInput = null;
     this.dragOffset = { x: 0, y: 0 };
+    this.otherCircleOffset = null;
     if (!this.glyphs.length || !this.bar) return;
     this._setupGlyphs();
     this._setupDropTargets();
@@ -20,6 +21,21 @@ export default class GlyphController {
       this.currentGlyph = glyph;
       const prong = e.target.dataset.prong;
       this.currentProng = prong || null;
+      this.otherCircleOffset = null;
+
+      if (glyph.dataset.glyph === 'glyph2' && prong) {
+        const svg = glyph.querySelector('svg');
+        const other = svg.querySelector(
+          `circle[data-prong]:not([data-prong="${prong}"])`
+        );
+        if (other) {
+          const otherRect = other.getBoundingClientRect();
+          this.otherCircleOffset = {
+            x: otherRect.left + otherRect.width / 2 - e.clientX,
+            y: otherRect.top + otherRect.height / 2 - e.clientY,
+          };
+        }
+      }
 
       // Cache original inline style so we can restore it after a drop.
       // Only do this once so the docked style persists until both prongs are used.
@@ -134,6 +150,13 @@ export default class GlyphController {
           this._markDisplay(name, ratio);
         }
 
+        if (prong && this.otherCircleOffset) {
+          const left = e.clientX + this.otherCircleOffset.x;
+          const top = e.clientY + this.otherCircleOffset.y;
+          this._spawnSingleGlyph(left, top);
+          this.otherCircleOffset = null;
+        }
+
         // Handle glyph style reset only after both prongs are used
         if (this.currentGlyph) {
           const glyph = this.currentGlyph;
@@ -169,6 +192,22 @@ export default class GlyphController {
         }
       });
     });
+  }
+
+  _spawnSingleGlyph(left, top) {
+    const div = document.createElement('div');
+    div.className = 'glyph';
+    div.draggable = true;
+    div.dataset.glyph = 'glyph';
+    div.style.position = 'fixed';
+    div.style.left = `${left - 7.5}px`;
+    div.style.top = `${top - 7.5}px`;
+    div.style.width = '15px';
+    div.style.height = '15px';
+    div.style.background = '#3fc009';
+    div.style.borderRadius = '50%';
+    div.style.zIndex = '1000';
+    document.body.appendChild(div);
   }
 
   _markDisplay(token, ratio) {
