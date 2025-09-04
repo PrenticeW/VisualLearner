@@ -1,40 +1,3 @@
-class LineConnector {
-  constructor(anchorCircle, movingCircle, line, anchorProng) {
-    this.anchor = anchorCircle;
-    this.moving = movingCircle;
-    this.line = line;
-    this.anchorProng = anchorProng;
-    const glyph = this.moving.closest('.glyph');
-    if (glyph) {
-      glyph.addEventListener('drag', () => this.update());
-      glyph.addEventListener('dragend', () => this.update());
-    }
-    this.update();
-  }
-
-  update() {
-    if (!this.anchor || !this.moving || !this.line) return;
-    const svgRect = this.line.ownerSVGElement.getBoundingClientRect();
-    const anchorRect = this.anchor.getBoundingClientRect();
-    const movingRect = this.moving.getBoundingClientRect();
-    const ax = anchorRect.left + anchorRect.width / 2 - svgRect.left;
-    const ay = anchorRect.top + anchorRect.height / 2 - svgRect.top;
-    const mx = movingRect.left + movingRect.width / 2 - svgRect.left;
-    const my = movingRect.top + movingRect.height / 2 - svgRect.top;
-    if (this.anchorProng === 'left') {
-      this.line.setAttribute('x2', ax);
-      this.line.setAttribute('y2', ay);
-      this.line.setAttribute('x1', mx);
-      this.line.setAttribute('y1', my);
-    } else {
-      this.line.setAttribute('x1', ax);
-      this.line.setAttribute('y1', ay);
-      this.line.setAttribute('x2', mx);
-      this.line.setAttribute('y2', my);
-    }
-  }
-}
-
 export default class GlyphController {
   constructor({ timelineDisplays = {} } = {}) {
     this.glyphSelector = '.glyph';
@@ -44,7 +7,6 @@ export default class GlyphController {
     this.currentGlyph = null;
     this.currentProng = null;
     this.pendingPairInput = null;
-    this.lineConnector = null;
     this.dragOffset = { x: 0, y: 0 };
     if (!this.glyphs.length || !this.bar) return;
     this._setupGlyphs();
@@ -218,39 +180,18 @@ export default class GlyphController {
                     newGlyph.appendChild(cloneSvg);
                     document.body.appendChild(newGlyph);
 
-                    // Ensure we have a global SVG layer for connectors
-                    let overlay = document.getElementById('line-overlay');
-                    if (!overlay) {
-                      overlay = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-                      overlay.setAttribute('id', 'line-overlay');
-                      overlay.style.position = 'fixed';
-                      overlay.style.left = '0';
-                      overlay.style.top = '0';
-                      overlay.style.width = '100vw';
-                      overlay.style.height = '100vh';
-                      overlay.style.pointerEvents = 'none';
-                      document.body.appendChild(overlay);
-                    }
-
-                    // Move the dropped prong and line to the overlay so they are fixed in place
-                    const anchorCircle = svg.querySelector(`[data-prong="${droppedProng}"]`);
-                    anchorCircle.setAttribute('cx', targetCenter.x);
-                    anchorCircle.setAttribute('cy', targetCenter.y);
-                    overlay.appendChild(anchorCircle);
-
-                    line.setAttribute('x1', targetCenter.x);
-                    line.setAttribute('y1', targetCenter.y);
-                    line.setAttribute('x2', targetCenter.x);
-                    line.setAttribute('y2', targetCenter.y);
-                    overlay.appendChild(line);
-
-                    const movingCircle = cloneSvg.querySelector(`[data-prong="${remainingProng}"]`);
-                    this.lineConnector = new LineConnector(anchorCircle, movingCircle, line, droppedProng);
-
-                    // Remove the second circle from the original glyph and detach it
+                    // Remove line and the unused circle from the original glyph
+                    const lineEl = svg.querySelector('line');
+                    if (lineEl) lineEl.remove();
                     const removeCircle = svg.querySelector(`[data-prong="${remainingProng}"]`);
                     if (removeCircle) removeCircle.remove();
-                    glyph.remove();
+
+                    // Anchor the dropped circle in place and make it non-draggable
+                    const anchorCircle = svg.querySelector(`[data-prong="${droppedProng}"]`);
+                    if (anchorCircle) {
+                      anchorCircle.removeAttribute('data-prong');
+                      anchorCircle.style.pointerEvents = 'none';
+                    }
                     return;
                   }
                 }
@@ -259,22 +200,6 @@ export default class GlyphController {
                 const circle = svg.querySelector(`[data-prong="${droppedProng}"]`);
                 if (circle) circle.remove();
                 const remaining = svg.querySelectorAll('circle').length;
-
-                if (this.lineConnector) {
-                  const line = this.lineConnector.line;
-                  const overlayRect = line.ownerSVGElement.getBoundingClientRect();
-                  const relX = targetCenter.x - overlayRect.left;
-                  const relY = targetCenter.y - overlayRect.top;
-                  if (droppedProng === 'left') {
-                    line.setAttribute('x1', relX);
-                    line.setAttribute('y1', relY);
-                  } else if (droppedProng === 'right') {
-                    line.setAttribute('x2', relX);
-                    line.setAttribute('y2', relY);
-                  }
-                  this.lineConnector = null;
-                }
-
                 if (remaining === 0) {
                   glyph.remove();
                 }
