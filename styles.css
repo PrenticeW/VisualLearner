@@ -68,6 +68,11 @@ h1 {
     height: 42px;
   }
 
+  #glyph2 line {
+    stroke: #3fc009;
+    stroke-width: 2;
+  }
+
 #selection-bar {
   position: fixed;
   top: 130px;
