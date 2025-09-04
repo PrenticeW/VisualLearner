@@ -139,6 +139,22 @@ export default class GlyphController {
 
           requestAnimationFrame(() => {
             if (svg && line) {
+              // On the first prong drop, dock the glyph so the prong's center
+              // aligns with the drop target center.
+              if (!glyph.dataset.docked && droppedProng) {
+                const circle = svg.querySelector(`[data-prong="${droppedProng}"]`);
+                if (circle) {
+                  const glyphRect = glyph.getBoundingClientRect();
+                  const circleRect = circle.getBoundingClientRect();
+                  const offsetX = circleRect.left + circleRect.width / 2 - glyphRect.left;
+                  const offsetY = circleRect.top + circleRect.height / 2 - glyphRect.top;
+                  glyph.style.position = 'fixed';
+                  glyph.style.left = `${targetCenter.x - offsetX}px`;
+                  glyph.style.top = `${targetCenter.y - offsetY}px`;
+                  glyph.dataset.docked = 'true';
+                }
+              }
+
               const svgRect = svg.getBoundingClientRect();
               const relX = targetCenter.x - svgRect.left;
               const relY = targetCenter.y - svgRect.top;
@@ -168,6 +184,7 @@ export default class GlyphController {
                 glyph.style.removeProperty('right');
                 glyph.style.removeProperty('transform');
                 delete glyph.dataset.originalStyle;
+                delete glyph.dataset.docked;
               }
             }
           });
