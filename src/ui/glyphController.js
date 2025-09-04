@@ -1,3 +1,22 @@
+class SingleBlueGlyph {
+  constructor(left, top) {
+    const div = document.createElement('div');
+    div.className = 'glyph';
+    div.draggable = true;
+    div.dataset.glyph = 'singleBlueGlyph';
+    div.style.position = 'fixed';
+    div.style.left = `${left - 7.5}px`;
+    div.style.top = `${top - 7.5}px`;
+    div.style.width = '15px';
+    div.style.height = '15px';
+    div.style.background = 'dodgerblue';
+    div.style.borderRadius = '50%';
+    div.style.zIndex = '1000';
+    document.body.appendChild(div);
+    this.element = div;
+  }
+}
+
 export default class GlyphController {
   constructor({ timelineDisplays = {} } = {}) {
     this.glyphSelector = '.glyph';
@@ -128,26 +147,12 @@ export default class GlyphController {
             this.currentGlyph = null;
           }
           this.pendingPairInput = second;
-        } else {
-          let field;
-          if (prong && this.pendingPairInput) {
-            field = this.pendingPairInput;
-            field.value = name;
-            this.pendingPairInput = null;
-          } else {
-            field = document.createElement('input');
-            field.type = 'text';
-            field.value = name;
-            field.readOnly = true;
-            field.style.width = '56px';
-            field.style.fontSize = '8px';
-            field.style.height = '20px';
-            if (glyphId) {
-              field.dataset.glyph = glyphId;
-            }
-            this.bar.appendChild(field);
-          }
+        } else if (this.pendingPairInput) {
+          this.pendingPairInput.value = name;
+          this.pendingPairInput = null;
           this._markDisplay(name, ratio);
+        } else {
+          // existing logic to spawn another text box is skipped
         }
 
         if (prong || hasTwoProngs) {
@@ -198,19 +203,7 @@ export default class GlyphController {
   }
 
   _spawnSingleGlyph(left, top) {
-    const div = document.createElement('div');
-    div.className = 'glyph';
-    div.draggable = true;
-    div.dataset.glyph = 'glyph';
-    div.style.position = 'fixed';
-    div.style.left = `${left - 7.5}px`;
-    div.style.top = `${top - 7.5}px`;
-    div.style.width = '15px';
-    div.style.height = '15px';
-    div.style.background = '#3fc009';
-    div.style.borderRadius = '50%';
-    div.style.zIndex = '1000';
-    document.body.appendChild(div);
+    new SingleBlueGlyph(left, top);
   }
 
   _markDisplay(token, ratio) {
