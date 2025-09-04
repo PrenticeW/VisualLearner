@@ -1,3 +1,40 @@
+class LineConnector {
+  constructor(anchorCircle, movingCircle, line, anchorProng) {
+    this.anchor = anchorCircle;
+    this.moving = movingCircle;
+    this.line = line;
+    this.anchorProng = anchorProng;
+    const glyph = this.moving.closest('.glyph');
+    if (glyph) {
+      glyph.addEventListener('drag', () => this.update());
+      glyph.addEventListener('dragend', () => this.update());
+    }
+    this.update();
+  }
+
+  update() {
+    if (!this.anchor || !this.moving || !this.line) return;
+    const svgRect = this.line.ownerSVGElement.getBoundingClientRect();
+    const anchorRect = this.anchor.getBoundingClientRect();
+    const movingRect = this.moving.getBoundingClientRect();
+    const ax = anchorRect.left + anchorRect.width / 2 - svgRect.left;
+    const ay = anchorRect.top + anchorRect.height / 2 - svgRect.top;
+    const mx = movingRect.left + movingRect.width / 2 - svgRect.left;
+    const my = movingRect.top + movingRect.height / 2 - svgRect.top;
+    if (this.anchorProng === 'left') {
+      this.line.setAttribute('x2', ax);
+      this.line.setAttribute('y2', ay);
+      this.line.setAttribute('x1', mx);
+      this.line.setAttribute('y1', my);
+    } else {
+      this.line.setAttribute('x1', ax);
+      this.line.setAttribute('y1', ay);
+      this.line.setAttribute('x2', mx);
+      this.line.setAttribute('y2', my);
+    }
+  }
+}
+
 export default class GlyphController {
   constructor({ timelineDisplays = {} } = {}) {
     this.glyphSelector = '.glyph';
@@ -7,6 +44,7 @@ export default class GlyphController {
     this.currentGlyph = null;
     this.currentProng = null;
     this.pendingPairInput = null;
+    this.lineConnector = null;
     this.dragOffset = { x: 0, y: 0 };
     if (!this.glyphs.length || !this.bar) return;
     this._setupGlyphs();
@@ -138,41 +176,65 @@ export default class GlyphController {
           const line = svg && svg.querySelector('line');
 
           requestAnimationFrame(() => {
-            if (svg && line) {
-              // On the first prong drop, dock the glyph so the prong's center
-              // aligns with the drop target center.
-              if (!glyph.dataset.docked && droppedProng) {
-                const circle = svg.querySelector(`[data-prong="${droppedProng}"]`);
-                if (circle) {
-                  const glyphRect = glyph.getBoundingClientRect();
-                  const circleRect = circle.getBoundingClientRect();
-                  const offsetX = circleRect.left + circleRect.width / 2 - glyphRect.left;
-                  const offsetY = circleRect.top + circleRect.height / 2 - glyphRect.top;
-                  glyph.style.position = 'fixed';
-                  glyph.style.left = `${targetCenter.x - offsetX}px`;
-                  glyph.style.top = `${targetCenter.y - offsetY}px`;
-                  glyph.dataset.docked = 'true';
-                }
-              }
+            if (svg) {
+              if (line && droppedProng) {
+                // On the first prong drop, dock the glyph and spawn a new prong
+                if (!glyph.dataset.docked) {
+                  const circle = svg.querySelector(`[data-prong="${droppedProng}"]`);
+                  if (circle) {
+                    const glyphRect = glyph.getBoundingClientRect();
+                    const circleRect = circle.getBoundingClientRect();
+                    const offsetX = circleRect.left + circleRect.width / 2 - glyphRect.left;
+                    const offsetY = circleRect.top + circleRect.height / 2 - glyphRect.top;
+                    glyph.style.position = 'fixed';
+                    glyph.style.left = `${targetCenter.x - offsetX}px`;
+                    glyph.style.top = `${targetCenter.y - offsetY}px`;
+                    glyph.dataset.docked = 'true';
+                    glyph.draggable = false;
 
-              const svgRect = svg.getBoundingClientRect();
-              const relX = targetCenter.x - svgRect.left;
-              const relY = targetCenter.y - svgRect.top;
-              if (droppedProng === 'left') {
-                const leftCircle = svg.querySelector('[data-prong="left"]');
-                if (leftCircle) leftCircle.remove();
-                line.setAttribute('x2', relX);
-                line.setAttribute('y2', relY);
-              } else if (droppedProng === 'right') {
-                const rightCircle = svg.querySelector('[data-prong="right"]');
-                if (rightCircle) rightCircle.remove();
-                line.setAttribute('x1', relX);
-                line.setAttribute('y1', relY);
-              } else {
-                line.setAttribute('x1', '35');
-                line.setAttribute('y1', '7');
-                line.setAttribute('x2', '7');
-                line.setAttribute('y2', '35');
+                    const remainingProng = droppedProng === 'left' ? 'right' : 'left';
+                    const cloneSvg = svg.cloneNode(true);
+                    const lineClone = cloneSvg.querySelector('line');
+                    if (lineClone) lineClone.remove();
+                    const anchorClone = cloneSvg.querySelector(`[data-prong="${droppedProng}"]`);
+                    if (anchorClone) anchorClone.remove();
+                    const newGlyph = document.createElement('div');
+                    newGlyph.className = 'glyph';
+                    newGlyph.draggable = true;
+                    newGlyph.dataset.glyph = glyph.dataset.glyph || 'glyph';
+                    newGlyph.style.position = 'fixed';
+                    newGlyph.style.left = glyph.style.left;
+                    newGlyph.style.top = glyph.style.top;
+                    newGlyph.appendChild(cloneSvg);
+                    document.body.appendChild(newGlyph);
+                    const movingCircle = cloneSvg.querySelector(`[data-prong="${remainingProng}"]`);
+                    const anchorCircle = svg.querySelector(`[data-prong="${droppedProng}"]`);
+                    this.lineConnector = new LineConnector(anchorCircle, movingCircle, line, droppedProng);
+                    const removeCircle = svg.querySelector(`[data-prong="${remainingProng}"]`);
+                    if (removeCircle) removeCircle.remove();
+                  }
+                }
+
+                const svgRect = svg.getBoundingClientRect();
+                const relX = targetCenter.x - svgRect.left;
+                const relY = targetCenter.y - svgRect.top;
+                if (droppedProng === 'left') {
+                  line.setAttribute('x2', relX);
+                  line.setAttribute('y2', relY);
+                } else if (droppedProng === 'right') {
+                  line.setAttribute('x1', relX);
+                  line.setAttribute('y1', relY);
+                }
+              } else if (droppedProng) {
+                // For secondary prong drops (glyph without line)
+                const circle = svg.querySelector(`[data-prong="${droppedProng}"]`);
+                if (circle) circle.remove();
+                const remaining = svg.querySelectorAll('circle').length;
+                if (remaining === 0) {
+                  glyph.remove();
+                  if (this.lineConnector) this.lineConnector = null;
+                }
+                return;
               }
 
               // Restore the glyph only when no circles remain
