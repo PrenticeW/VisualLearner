@@ -124,7 +124,13 @@ export default class GlyphController {
           y: btnRect.top + btnRect.height / 2,
         };
 
-        if (this.pendingPairInput === null && prong) {
+        // Also create paired inputs when a glyph with two prongs is dropped
+        const hasTwoProngs =
+          glyphId === 'glyph2' ||
+          (this.currentGlyph &&
+            this.currentGlyph.querySelectorAll('circle[data-prong]').length === 2);
+
+        if (this.pendingPairInput === null && (prong || hasTwoProngs)) {
           const first = document.createElement('input');
           first.type = 'text';
           first.value = name;
