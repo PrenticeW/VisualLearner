@@ -124,7 +124,7 @@ export default class GlyphController {
           y: btnRect.top + btnRect.height / 2,
         };
 
-        if (prong === 'left' || (!prong && glyphId === 'glyph2')) {
+        if (this.pendingPairInput === null && prong) {
           const first = document.createElement('input');
           first.type = 'text';
           first.value = name;
@@ -148,7 +148,7 @@ export default class GlyphController {
           this._markDisplay(name, ratio);
         } else {
           let field;
-          if (prong === 'right' && this.pendingPairInput) {
+          if (prong && this.pendingPairInput) {
             field = this.pendingPairInput;
             field.value = name;
             this.pendingPairInput = null;
