@@ -79,13 +79,6 @@ export default class GlyphController {
         let ratio = (e.clientX - rect.left) / rect.width;
         ratio = Math.min(Math.max(ratio, 0), 1);
 
-        // Capture drop target center before glyph style is restored
-        const btnRect = btn.getBoundingClientRect();
-        const targetCenter = {
-          x: btnRect.left + btnRect.width / 2,
-          y: btnRect.top + btnRect.height / 2,
-        };
-
         // Also create paired inputs when a glyph with two prongs is dropped
         const hasTwoProngs =
           glyphId === 'glyph2' ||
@@ -146,54 +139,37 @@ export default class GlyphController {
           requestAnimationFrame(() => {
             if (svg) {
               if (line && droppedProng) {
-                // On the first prong drop, dock the glyph and spawn a new prong
-                if (!glyph.dataset.docked) {
-                  const circle = svg.querySelector(`[data-prong="${droppedProng}"]`);
-                  if (circle) {
-                    const glyphRect = glyph.getBoundingClientRect();
-                    const circleRect = circle.getBoundingClientRect();
-                    const offsetX = circleRect.left + circleRect.width / 2 - glyphRect.left;
-                    const offsetY = circleRect.top + circleRect.height / 2 - glyphRect.top;
-                    glyph.style.position = 'fixed';
-                    glyph.style.left = `${targetCenter.x - offsetX}px`;
-                    glyph.style.top = `${targetCenter.y - offsetY}px`;
-                    glyph.dataset.docked = 'true';
-                    glyph.draggable = false;
+                const remainingCircle = svg.querySelector(
+                  `[data-prong]:not([data-prong="${droppedProng}"])`);
+                if (remainingCircle) {
+                  const rect = remainingCircle.getBoundingClientRect();
+                  const centerX = rect.left + rect.width / 2;
+                  const centerY = rect.top + rect.height / 2;
+                  const radius = rect.width / 2;
 
-                    const remainingProng = droppedProng === 'left' ? 'right' : 'left';
+                  glyph.remove();
 
-                    // Create a clone SVG containing only the remaining prong for dragging
-                    const cloneSvg = svg.cloneNode(true);
-                    const lineClone = cloneSvg.querySelector('line');
-                    if (lineClone) lineClone.remove();
-                    const anchorClone = cloneSvg.querySelector(`[data-prong="${droppedProng}"]`);
-                    if (anchorClone) anchorClone.remove();
+                  const newGlyph = document.createElement('div');
+                  newGlyph.className = 'glyph';
+                  newGlyph.draggable = true;
+                  newGlyph.dataset.glyph = glyph.dataset.glyph || 'glyph';
+                  newGlyph.style.position = 'fixed';
+                  newGlyph.style.left = `${centerX - radius}px`;
+                  newGlyph.style.top = `${centerY - radius}px`;
 
-                    // Spawn a new glyph that will act as the second draggable prong
-                    const newGlyph = document.createElement('div');
-                    newGlyph.className = 'glyph';
-                    newGlyph.draggable = true;
-                    newGlyph.dataset.glyph = glyph.dataset.glyph || 'glyph';
-                    newGlyph.style.position = 'fixed';
-                    newGlyph.style.left = glyph.style.left;
-                    newGlyph.style.top = glyph.style.top;
-                    newGlyph.appendChild(cloneSvg);
-                    document.body.appendChild(newGlyph);
+                  const newSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                  newSvg.setAttribute('width', rect.width);
+                  newSvg.setAttribute('height', rect.height);
 
-                    // Remove line and the unused circle from the original glyph
-                    const lineEl = svg.querySelector('line');
-                    if (lineEl) lineEl.remove();
-                    const removeCircle = svg.querySelector(`[data-prong="${remainingProng}"]`);
-                    if (removeCircle) removeCircle.remove();
+                  const cloneCircle = remainingCircle.cloneNode(true);
+                  cloneCircle.setAttribute('cx', radius);
+                  cloneCircle.setAttribute('cy', radius);
+                  cloneCircle.setAttribute('r', radius);
+                  newSvg.appendChild(cloneCircle);
 
-                    // Anchor the dropped circle in place and make it non-draggable
-                    const anchorCircle = svg.querySelector(`[data-prong="${droppedProng}"]`);
-                    if (anchorCircle) {
-                      anchorCircle.removeAttribute('data-prong');
-                      anchorCircle.style.pointerEvents = 'none';
-                    }
-                    return;
-                  }
+                  newGlyph.appendChild(newSvg);
+                  document.body.appendChild(newGlyph);
+                  return;
                 }
               } else if (droppedProng) {
                 // For secondary prong drops (glyph without line)
