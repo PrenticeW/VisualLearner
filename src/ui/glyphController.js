@@ -74,6 +74,13 @@ export default class GlyphController {
         let ratio = (e.clientX - rect.left) / rect.width;
         ratio = Math.min(Math.max(ratio, 0), 1);
 
+        // Capture drop target center before glyph style is restored
+        const btnRect = btn.getBoundingClientRect();
+        const targetCenter = {
+          x: btnRect.left + btnRect.width / 2,
+          y: btnRect.top + btnRect.height / 2,
+        };
+
         if (prong === 'left') {
           const first = document.createElement('input');
           first.type = 'text';
@@ -95,23 +102,6 @@ export default class GlyphController {
           this.bar.appendChild(second);
           this.pendingPairInput = second;
           this._markDisplay(name, ratio);
-
-          // Update glyph for left prong placement
-          const glyph = this.currentGlyph;
-          if (glyph) {
-            const svg = glyph.querySelector('svg');
-            const line = svg && svg.querySelector('line');
-            const leftCircle = svg && svg.querySelector('[data-prong="left"]');
-            if (leftCircle) leftCircle.style.display = 'none';
-            if (svg && line) {
-              const svgRect = svg.getBoundingClientRect();
-              const btnRect = btn.getBoundingClientRect();
-              const x = btnRect.left + btnRect.width / 2 - svgRect.left;
-              const y = btnRect.top + btnRect.height / 2 - svgRect.top;
-              line.setAttribute('x2', x);
-              line.setAttribute('y2', y);
-            }
-          }
         } else {
           let field;
           if (prong === 'right' && this.pendingPairInput) {
@@ -142,19 +132,37 @@ export default class GlyphController {
           glyph.style.removeProperty('top');
           glyph.style.removeProperty('right');
           glyph.style.removeProperty('transform');
-          if (!this.pendingPairInput) {
-            const svg = glyph.querySelector('svg');
-            const line = svg && svg.querySelector('line');
-            const leftCircle = svg && svg.querySelector('[data-prong="left"]');
-            if (leftCircle) leftCircle.style.display = '';
-            if (line) {
-              line.setAttribute('x1', '35');
-              line.setAttribute('y1', '7');
-              line.setAttribute('x2', '7');
-              line.setAttribute('y2', '35');
+
+          const droppedProng = prong;
+          const svg = glyph.querySelector('svg');
+          const line = svg && svg.querySelector('line');
+
+          requestAnimationFrame(() => {
+            if (svg && line) {
+              const svgRect = svg.getBoundingClientRect();
+              const relX = targetCenter.x - svgRect.left;
+              const relY = targetCenter.y - svgRect.top;
+              if (droppedProng === 'left') {
+                const leftCircle = svg.querySelector('[data-prong="left"]');
+                if (leftCircle) leftCircle.remove();
+                line.setAttribute('x2', relX);
+                line.setAttribute('y2', relY);
+              } else if (droppedProng === 'right') {
+                const rightCircle = svg.querySelector('[data-prong="right"]');
+                if (rightCircle) rightCircle.remove();
+                line.setAttribute('x1', relX);
+                line.setAttribute('y1', relY);
+              } else {
+                line.setAttribute('x1', '35');
+                line.setAttribute('y1', '7');
+                line.setAttribute('x2', '7');
+                line.setAttribute('y2', '35');
+              }
             }
-          }
+          });
+
           this.currentGlyph = null;
+          this.currentProng = null;
         }
       });
     });
