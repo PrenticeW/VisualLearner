@@ -46,14 +46,16 @@ export default class GlyphController {
 
     document.addEventListener('dragend', (e) => {
       if (!this.currentGlyph) return;
-      const left = e.clientX - this.dragOffset.x;
-      const top = e.clientY - this.dragOffset.y;
       const glyph = this.currentGlyph;
-      glyph.style.position = 'fixed';
-      glyph.style.left = `${left}px`;
-      glyph.style.top = `${top}px`;
-      glyph.style.right = 'auto';
-      glyph.style.transform = 'none';
+      if (!this.currentProng) {
+        const left = e.clientX - this.dragOffset.x;
+        const top = e.clientY - this.dragOffset.y;
+        glyph.style.position = 'fixed';
+        glyph.style.left = `${left}px`;
+        glyph.style.top = `${top}px`;
+        glyph.style.right = 'auto';
+        glyph.style.transform = 'none';
+      }
       this.currentGlyph = null;
       this.currentProng = null;
     });
@@ -169,9 +171,6 @@ export default class GlyphController {
               }
             }
           });
-
-          this.currentGlyph = null;
-          this.currentProng = null;
         }
       });
     });
