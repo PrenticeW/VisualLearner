@@ -150,9 +150,10 @@ export default class GlyphController {
           this._markDisplay(name, ratio);
         }
 
-        if (prong && this.otherCircleOffset) {
-          const left = e.clientX + this.otherCircleOffset.x;
-          const top = e.clientY + this.otherCircleOffset.y;
+        if (prong) {
+          const offset = this.otherCircleOffset || { x: 0, y: 0 };
+          const left = e.clientX + offset.x;
+          const top = e.clientY + offset.y;
           this._spawnSingleGlyph(left, top);
           this.otherCircleOffset = null;
         }
