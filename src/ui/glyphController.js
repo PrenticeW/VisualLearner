@@ -154,8 +154,8 @@ export default class GlyphController {
           const offset = prong
             ? this.otherCircleOffset || { x: 0, y: 0 }
             : { x: 0, y: 0 };
-          const left = e.clientX + offset.x;
-          const top = e.clientY + offset.y;
+          const left = e.clientX + offset.x + 15;
+          const top = e.clientY + offset.y + 15;
           this._spawnSingleGlyph(left, top);
           this.otherCircleOffset = null;
         }
