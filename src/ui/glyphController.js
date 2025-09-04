@@ -81,7 +81,7 @@ export default class GlyphController {
           y: btnRect.top + btnRect.height / 2,
         };
 
-        if (prong === 'left') {
+        if (prong === 'left' || (!prong && glyphId === 'glyph2')) {
           const first = document.createElement('input');
           first.type = 'text';
           first.value = name;
@@ -98,6 +98,7 @@ export default class GlyphController {
           second.style.width = '56px';
           second.style.fontSize = '8px';
           second.style.height = '20px';
+          second.value = '';
           this.bar.appendChild(first);
           this.bar.appendChild(second);
           this.pendingPairInput = second;
