@@ -32,7 +32,7 @@ export default class GlyphController {
       clone.style.top = '-9999px';
       clone.style.right = '-9999px';
       document.body.appendChild(clone);
-      e.dataTransfer.setDragImage(clone, rect.width / 2, rect.height / 2);
+      e.dataTransfer.setDragImage(clone, this.dragOffset.x, this.dragOffset.y);
       const id = glyph.dataset.glyph || 'glyph';
       e.dataTransfer.setData('text/plain', id);
       if (prong) {
