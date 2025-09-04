@@ -105,8 +105,13 @@ export default class GlyphController {
           second.value = '';
           this.bar.appendChild(first);
           this.bar.appendChild(second);
-          this.pendingPairInput = second;
           this._markDisplay(name, ratio);
+
+          if (this.currentGlyph) {
+            this.currentGlyph.remove();
+            this.currentGlyph = null;
+          }
+          this.pendingPairInput = null;
         } else {
           let field;
           if (prong && this.pendingPairInput) {
@@ -134,44 +139,10 @@ export default class GlyphController {
           const glyph = this.currentGlyph;
           const droppedProng = prong;
           const svg = glyph.querySelector('svg');
-          const line = svg && svg.querySelector('line');
 
           requestAnimationFrame(() => {
             if (svg) {
-              if (line && droppedProng) {
-                const remainingCircle = svg.querySelector(
-                  `[data-prong]:not([data-prong="${droppedProng}"])`);
-                if (remainingCircle) {
-                  const rect = remainingCircle.getBoundingClientRect();
-                  const centerX = rect.left + rect.width / 2;
-                  const centerY = rect.top + rect.height / 2;
-                  const radius = rect.width / 2;
-
-                  glyph.remove();
-
-                  const newGlyph = document.createElement('div');
-                  newGlyph.className = 'glyph';
-                  newGlyph.draggable = true;
-                  newGlyph.dataset.glyph = glyph.dataset.glyph || 'glyph';
-                  newGlyph.style.position = 'fixed';
-                  newGlyph.style.left = `${centerX - radius}px`;
-                  newGlyph.style.top = `${centerY - radius}px`;
-
-                  const newSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-                  newSvg.setAttribute('width', rect.width);
-                  newSvg.setAttribute('height', rect.height);
-
-                  const cloneCircle = remainingCircle.cloneNode(true);
-                  cloneCircle.setAttribute('cx', radius);
-                  cloneCircle.setAttribute('cy', radius);
-                  cloneCircle.setAttribute('r', radius);
-                  newSvg.appendChild(cloneCircle);
-
-                  newGlyph.appendChild(newSvg);
-                  document.body.appendChild(newGlyph);
-                  return;
-                }
-              } else if (droppedProng) {
+              if (droppedProng) {
                 // For secondary prong drops (glyph without line)
                 const circle = svg.querySelector(`[data-prong="${droppedProng}"]`);
                 if (circle) circle.remove();
