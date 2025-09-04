@@ -127,7 +127,7 @@ export default class GlyphController {
             this.currentGlyph.remove();
             this.currentGlyph = null;
           }
-          this.pendingPairInput = null;
+          this.pendingPairInput = second;
         } else {
           let field;
           if (prong && this.pendingPairInput) {
