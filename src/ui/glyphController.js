@@ -1,6 +1,6 @@
 export default class GlyphController {
   constructor({ timelineDisplays = {} } = {}) {
-    this.glyphSelector = '.glyph, #glyph2';
+    this.glyphSelector = '.glyph';
     this.glyphs = document.querySelectorAll(this.glyphSelector);
     this.bar = document.getElementById('selection-bar');
     this.timelineDisplays = timelineDisplays;
@@ -73,7 +73,7 @@ export default class GlyphController {
         field.style.fontSize = '8px';
         field.style.height = '20px';
         if (glyphId) {
-          field.dataset.glyph = glyphId.startsWith('glyph2') ? 'glyph2' : glyphId;
+          field.dataset.glyph = glyphId;
         }
         this.bar.appendChild(field);
         this._markDisplay(name, ratio);
