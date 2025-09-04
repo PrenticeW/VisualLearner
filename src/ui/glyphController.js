@@ -21,8 +21,11 @@ export default class GlyphController {
       const prong = e.target.dataset.prong;
       this.currentProng = prong || null;
 
-      // Cache original inline style so we can restore it after a drop
-      glyph.dataset.originalStyle = glyph.getAttribute('style') || '';
+      // Cache original inline style so we can restore it after a drop.
+      // Only do this once so the docked style persists until both prongs are used.
+      if (!('originalStyle' in glyph.dataset)) {
+        glyph.dataset.originalStyle = glyph.getAttribute('style') || '';
+      }
 
       const rect = glyph.getBoundingClientRect();
       this.dragOffset.x = e.clientX - rect.left;
@@ -125,15 +128,9 @@ export default class GlyphController {
           this._markDisplay(name, ratio);
         }
 
-        // Restore glyph to its original docked style and position
+        // Handle glyph style reset only after both prongs are used
         if (this.currentGlyph) {
           const glyph = this.currentGlyph;
-          glyph.style.cssText = glyph.dataset.originalStyle || '';
-          glyph.style.removeProperty('left');
-          glyph.style.removeProperty('top');
-          glyph.style.removeProperty('right');
-          glyph.style.removeProperty('transform');
-
           const droppedProng = prong;
           const svg = glyph.querySelector('svg');
           const line = svg && svg.querySelector('line');
@@ -158,6 +155,17 @@ export default class GlyphController {
                 line.setAttribute('y1', '7');
                 line.setAttribute('x2', '7');
                 line.setAttribute('y2', '35');
+              }
+
+              // Restore the glyph only when no circles remain
+              const remaining = svg.querySelectorAll('circle').length;
+              if (remaining === 0) {
+                glyph.style.cssText = glyph.dataset.originalStyle || '';
+                glyph.style.removeProperty('left');
+                glyph.style.removeProperty('top');
+                glyph.style.removeProperty('right');
+                glyph.style.removeProperty('transform');
+                delete glyph.dataset.originalStyle;
               }
             }
           });
