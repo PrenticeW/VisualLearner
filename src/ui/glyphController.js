@@ -16,6 +16,10 @@ export default class GlyphController {
       const glyph = e.target.closest(this.glyphSelector);
       if (!glyph) return;
       this.currentGlyph = glyph;
+
+      // Cache original inline style so we can restore it after a drop
+      glyph.dataset.originalStyle = glyph.getAttribute('style') || '';
+
       const rect = glyph.getBoundingClientRect();
       this.dragOffset.x = e.clientX - rect.left;
       this.dragOffset.y = e.clientY - rect.top;
@@ -73,6 +77,17 @@ export default class GlyphController {
         }
         this.bar.appendChild(field);
         this._markDisplay(name, ratio);
+
+        // Restore glyph to its original docked style and position
+        if (this.currentGlyph) {
+          const glyph = this.currentGlyph;
+          glyph.style.cssText = glyph.dataset.originalStyle || '';
+          glyph.style.removeProperty('left');
+          glyph.style.removeProperty('top');
+          glyph.style.removeProperty('right');
+          glyph.style.removeProperty('transform');
+          this.currentGlyph = null;
+        }
       });
     });
   }
