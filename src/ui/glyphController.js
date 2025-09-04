@@ -34,9 +34,12 @@ export default class GlyphController {
       if (!this.currentGlyph) return;
       const left = e.clientX - this.dragOffset.x;
       const top = e.clientY - this.dragOffset.y;
-      this.currentGlyph.style.position = 'absolute';
-      this.currentGlyph.style.left = `${left}px`;
-      this.currentGlyph.style.top = `${top}px`;
+      const glyph = this.currentGlyph;
+      glyph.style.position = 'fixed';
+      glyph.style.left = `${left}px`;
+      glyph.style.top = `${top}px`;
+      glyph.style.right = 'auto';
+      glyph.style.transform = 'none';
       this.currentGlyph = null;
     });
   }
