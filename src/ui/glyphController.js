@@ -276,6 +276,23 @@ export default class GlyphController {
             this.currentGlyph = null;
           }
           this._spawnTwoProngGlyph();
+        } else if (glyphId === 'glyph') {
+          const input = document.createElement('input');
+          input.type = 'text';
+          input.readOnly = true;
+          input.style.width = '56px';
+          input.style.fontSize = '8px';
+          input.style.height = '20px';
+          input.value = name;
+          if (glyphId) {
+            input.dataset.glyph = glyphId;
+          }
+          this.bar.appendChild(input);
+          this._markDisplay(name, ratio);
+          if (this.currentGlyph) {
+            this.currentGlyph.remove();
+            this.currentGlyph = null;
+          }
         } else {
           // existing logic to spawn another text box is skipped
         }
