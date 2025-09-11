@@ -94,6 +94,18 @@ export default class TimelineDisplay {
   }
 
   /**
+   * Remove a green marker at the given path.
+   * @param {string} path dotted path such as 'UR.DR'
+   */
+  removeMarker(path) {
+    if (!this.svg) return;
+    const circle = this.tokenMap[path];
+    if (circle) {
+      circle.classList.remove('glyph-marker');
+    }
+  }
+
+  /**
    * Draw a connector line between two marker paths.
    * @param {string} firstPath
    * @param {string} secondPath
@@ -110,5 +122,17 @@ export default class TimelineDisplay {
     line.setAttribute('y2', p2.y);
     line.setAttribute('class', 'glyph-connector');
     this.svg.appendChild(line);
+    return line;
+  }
+
+  /**
+   * Remove a connector line that was previously added.
+   * @param {SVGLineElement} line
+   */
+  removeConnection(line) {
+    if (!line) return;
+    if (line.parentNode === this.svg) {
+      line.remove();
+    }
   }
 }

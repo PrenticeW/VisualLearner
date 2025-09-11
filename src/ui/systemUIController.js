@@ -17,6 +17,7 @@ export default class SystemUIController {
     this.canvasRenderer = canvasRenderer;
     this.spatialUIController = spatialUIController;
     this.sequenceManager = sequences;
+    this.glyphController = null;
 
     // UI state
     this.timerMode = 0; // 0=Whole,1=One And,2=And One,3=Quarter
@@ -89,6 +90,7 @@ export default class SystemUIController {
           `Weights: ${this.weightsVisible ? 'On' : 'Off'}`
         );
       },
+      undoGlyph: () => this.glyphController?.undoLastGlyph(),
       copyState: () => this.copyState(),
       playSeq: () => this.loadFirstSequence(),
       nextSeq: () => this.loadNextSequence(),
@@ -261,5 +263,9 @@ export default class SystemUIController {
     this.p.textAlign(this.p.RIGHT, this.p.TOP);
     this.p.text(this.timer.getTimerDisplay(), this.p.width - 320, 110);
     this.p.pop();
+  }
+
+  setGlyphController(controller) {
+    this.glyphController = controller;
   }
 }

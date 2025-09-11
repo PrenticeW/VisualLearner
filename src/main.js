@@ -64,7 +64,10 @@ new p5((p) => {
     timeline2.build();
     timeline2.container.parent(wrapper);
 
-    new GlyphController({ timelineDisplays: { L: timeline1, R: timeline2 } });
+    const glyphCtrl = new GlyphController({
+      timelineDisplays: { L: timeline1, R: timeline2 },
+    });
+    systemUI.setGlyphController(glyphCtrl);
 
     // ─── OPTIONAL SPATIALUI CALLBACKS ─────────────────────────────────────────
     spatialUI.setGestureCallback((name) => {
