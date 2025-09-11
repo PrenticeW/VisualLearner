@@ -1,5 +1,5 @@
 class SingleBlueGlyph {
-  constructor(left, top) {
+  constructor(left, top, anchor) {
     const div = document.createElement('div');
     div.className = 'glyph';
     div.draggable = true;
@@ -14,6 +14,42 @@ class SingleBlueGlyph {
     div.style.zIndex = '1000';
     document.body.appendChild(div);
     this.element = div;
+
+    if (anchor) {
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.style.position = 'fixed';
+      svg.style.top = '0';
+      svg.style.left = '0';
+      svg.style.width = '100%';
+      svg.style.height = '100%';
+      svg.style.pointerEvents = 'none';
+      svg.style.zIndex = '999';
+      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      line.setAttribute('stroke', 'dodgerblue');
+      line.setAttribute('stroke-width', '1');
+      svg.appendChild(line);
+      document.body.appendChild(svg);
+
+      div._connectorSVG = svg;
+      div._connectorLine = line;
+      div._anchorElement = anchor;
+      div._updateConnector = function () {
+        const circleRect = div.getBoundingClientRect();
+        const circleX = circleRect.left + circleRect.width / 2;
+        const circleY = circleRect.top + circleRect.height / 2;
+        const btnRect = anchor.getBoundingClientRect();
+        const btnX = btnRect.left + btnRect.width / 2;
+        const btnY = btnRect.top + btnRect.height / 2;
+        line.setAttribute('x1', btnX);
+        line.setAttribute('y1', btnY);
+        line.setAttribute('x2', circleX);
+        line.setAttribute('y2', circleY);
+      };
+      div._removeConnector = function () {
+        svg.remove();
+      };
+      div._updateConnector();
+    }
   }
 }
 
@@ -79,6 +115,23 @@ export default class GlyphController {
       setTimeout(() => document.body.removeChild(clone), 0);
     });
 
+    document.addEventListener('drag', (e) => {
+      if (
+        this.currentGlyph &&
+        this.currentGlyph.dataset.glyph === 'singleBlueGlyph' &&
+        this.currentGlyph._connectorLine &&
+        this.currentGlyph._anchorElement
+      ) {
+        const btnRect = this.currentGlyph._anchorElement.getBoundingClientRect();
+        const btnX = btnRect.left + btnRect.width / 2;
+        const btnY = btnRect.top + btnRect.height / 2;
+        this.currentGlyph._connectorLine.setAttribute('x1', btnX);
+        this.currentGlyph._connectorLine.setAttribute('y1', btnY);
+        this.currentGlyph._connectorLine.setAttribute('x2', e.clientX);
+        this.currentGlyph._connectorLine.setAttribute('y2', e.clientY);
+      }
+    });
+
     document.addEventListener('dragend', (e) => {
       if (!this.currentGlyph) return;
       const glyph = this.currentGlyph;
@@ -90,6 +143,12 @@ export default class GlyphController {
         glyph.style.top = `${top}px`;
         glyph.style.right = 'auto';
         glyph.style.transform = 'none';
+        if (
+          glyph.dataset.glyph === 'singleBlueGlyph' &&
+          typeof glyph._updateConnector === 'function'
+        ) {
+          glyph._updateConnector();
+        }
       }
       this.currentGlyph = null;
       this.currentProng = null;
@@ -107,6 +166,7 @@ export default class GlyphController {
         const glyphId = e.dataTransfer.getData('text/plain');
         const name = btn.dataset.name || btn.textContent.trim();
         const prong = e.dataTransfer.getData('prong');
+        const isSingleBlue = glyphId === 'singleBlueGlyph';
 
         // Determine horizontal ratio of drop within the gesture grid
         const container = btn.parentElement || document.body;
@@ -151,6 +211,13 @@ export default class GlyphController {
           this.pendingPairInput.value = name;
           this.pendingPairInput = null;
           this._markDisplay(name, ratio);
+          if (isSingleBlue && this.currentGlyph) {
+            if (typeof this.currentGlyph._removeConnector === 'function') {
+              this.currentGlyph._removeConnector();
+            }
+            this.currentGlyph.remove();
+            this.currentGlyph = null;
+          }
         } else {
           // existing logic to spawn another text box is skipped
         }
@@ -161,7 +228,7 @@ export default class GlyphController {
             : { x: 0, y: 0 };
           const left = e.clientX + offset.x + 15;
           const top = e.clientY + offset.y + 15;
-          this._spawnSingleGlyph(left, top);
+          this._spawnSingleGlyph(left, top, btn);
           this.otherCircleOffset = null;
         }
 
@@ -202,8 +269,8 @@ export default class GlyphController {
     });
   }
 
-  _spawnSingleGlyph(left, top) {
-    new SingleBlueGlyph(left, top);
+  _spawnSingleGlyph(left, top, anchor) {
+    new SingleBlueGlyph(left, top, anchor);
   }
 
   _markDisplay(token, ratio) {
