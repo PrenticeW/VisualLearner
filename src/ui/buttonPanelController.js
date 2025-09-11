@@ -71,6 +71,7 @@ export default class ButtonPanelController {
     makeBtn('copyState', 'Copy State', 80);
     makeBtn('clearWeight', 'Clear Weight', 80);
     makeBtn('clearGesture', 'Clear Gesture', 80);
+    makeBtn('undoGlyph', 'Undo Glyph', 80);
     makeBtn('playSeq', 'Play Sequence', 120);
     makeBtn('nextSeq', 'Next Sequence', 120);
   }

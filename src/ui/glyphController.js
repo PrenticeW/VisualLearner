@@ -63,8 +63,10 @@ export default class GlyphController {
     this.currentProng = null;
     this.pendingPairInput = null;
     this.pendingPairMark = null;
+    this.pendingPairRecord = null;
     this.dragOffset = { x: 0, y: 0 };
     this.otherCircleOffset = null;
+    this.actionStack = [];
     if (this.bar) {
       this._centerSelectionBar();
       window.addEventListener('resize', () => this._centerSelectionBar());
@@ -226,11 +228,17 @@ export default class GlyphController {
           this.bar.appendChild(second);
           this._centerSelectionBar();
           const mark = this._markDisplay(name, ratio);
+          const record = {
+            inputs: [first, second],
+            markers: [],
+            connectors: [],
+          };
           if (mark) {
             this.pendingPairMark = {
               display: mark.display,
               path: mark.path,
             };
+            record.markers.push(this.pendingPairMark);
           }
 
           if (this.currentGlyph) {
@@ -238,9 +246,15 @@ export default class GlyphController {
             this.currentGlyph = null;
           }
           this.pendingPairInput = second;
+          this.pendingPairRecord = record;
         } else if (this.pendingPairInput) {
           this.pendingPairInput.value = name;
           this.pendingPairInput = null;
+          const record = this.pendingPairRecord || {
+            inputs: [],
+            markers: [],
+            connectors: [],
+          };
           const mark = this._markDisplay(name, ratio);
           if (mark && this.pendingPairMark) {
             if (mark.display !== this.pendingPairMark.display) {
@@ -263,14 +277,19 @@ export default class GlyphController {
                   line.setAttribute('y2', end.y);
                   line.setAttribute('class', 'timeline-connector');
                   layer.appendChild(line);
+                  record.connectors.push({ line });
                 }
               }
             } else {
-              mark.display.addConnection(
+              const line = mark.display.addConnection(
                 this.pendingPairMark.path,
                 mark.path
               );
+              if (line) {
+                record.connectors.push({ line, display: mark.display });
+              }
             }
+            record.markers.push({ display: mark.display, path: mark.path });
             this.pendingPairMark = null;
           }
           if (isSingleBlue && this.currentGlyph) {
@@ -281,6 +300,8 @@ export default class GlyphController {
             this.currentGlyph = null;
           }
           this._spawnTwoProngGlyph();
+          this.actionStack.push(record);
+          this.pendingPairRecord = null;
         } else if (glyphId === 'glyph') {
           const input = document.createElement('input');
           input.type = 'text';
@@ -294,11 +315,19 @@ export default class GlyphController {
           }
           this.bar.appendChild(input);
           this._centerSelectionBar();
-          this._markDisplay(name, ratio);
+          const mark = this._markDisplay(name, ratio);
           if (this.currentGlyph) {
             this.currentGlyph.remove();
             this.currentGlyph = null;
           }
+          const record = {
+            inputs: [input],
+            markers: mark
+              ? [{ display: mark.display, path: mark.path }]
+              : [],
+            connectors: [],
+          };
+          this.actionStack.push(record);
         } else {
           // existing logic to spawn another text box is skipped
         }
@@ -351,6 +380,39 @@ export default class GlyphController {
           });
         }
       });
+    });
+  }
+
+  undoLastGlyph() {
+    if (this.pendingPairRecord) {
+      this.pendingPairRecord.inputs.forEach((el) => el.remove());
+      this.pendingPairRecord.markers.forEach(({ display, path }) =>
+        display.removeMarker(path)
+      );
+      this.pendingPairRecord.connectors.forEach(({ line, display }) => {
+        if (display && typeof display.removeConnection === 'function') {
+          display.removeConnection(line);
+        } else if (line && typeof line.remove === 'function') {
+          line.remove();
+        }
+      });
+      this.pendingPairRecord = null;
+      this.pendingPairInput = null;
+      this.pendingPairMark = null;
+      this._centerSelectionBar();
+      return;
+    }
+    const last = this.actionStack.pop();
+    if (!last) return;
+    last.inputs.forEach((el) => el.remove());
+    this._centerSelectionBar();
+    last.markers.forEach(({ display, path }) => display.removeMarker(path));
+    last.connectors.forEach(({ line, display }) => {
+      if (display && typeof display.removeConnection === 'function') {
+        display.removeConnection(line);
+      } else if (line && typeof line.remove === 'function') {
+        line.remove();
+      }
     });
   }
 
