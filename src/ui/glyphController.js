@@ -235,6 +235,7 @@ export default class GlyphController {
             inputs: [first, second],
             markers: [],
             connectors: [],
+            buttons: [{ btn, originalColor }],
           };
           if (mark) {
             this.pendingPairMark = {
@@ -257,7 +258,10 @@ export default class GlyphController {
             inputs: [],
             markers: [],
             connectors: [],
+            buttons: [],
           };
+          record.buttons = record.buttons || [];
+          record.buttons.push({ btn, originalColor });
           const mark = this._markDisplay(name, ratio);
           if (mark && this.pendingPairMark) {
             if (mark.display !== this.pendingPairMark.display) {
@@ -329,6 +333,7 @@ export default class GlyphController {
               ? [{ display: mark.display, path: mark.path }]
               : [],
             connectors: [],
+            buttons: [{ btn, originalColor }],
           };
           this.actionStack.push(record);
         } else {
@@ -383,10 +388,6 @@ export default class GlyphController {
           });
         }
 
-        // Restore button color after the drop interaction completes
-        setTimeout(() => {
-          btn.style.backgroundColor = originalColor;
-        }, 300);
       });
     });
   }
@@ -404,6 +405,12 @@ export default class GlyphController {
           line.remove();
         }
       });
+      (this.pendingPairRecord.buttons || []).forEach(
+        ({ btn, originalColor }) => {
+          btn.style.backgroundColor = originalColor;
+          delete btn.dataset.originalColor;
+        }
+      );
       this.pendingPairRecord = null;
       this.pendingPairInput = null;
       this.pendingPairMark = null;
@@ -421,6 +428,10 @@ export default class GlyphController {
       } else if (line && typeof line.remove === 'function') {
         line.remove();
       }
+    });
+    (last.buttons || []).forEach(({ btn, originalColor }) => {
+      btn.style.backgroundColor = originalColor;
+      delete btn.dataset.originalColor;
     });
   }
 
