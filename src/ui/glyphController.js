@@ -62,7 +62,7 @@ export default class GlyphController {
     this.currentGlyph = null;
     this.currentProng = null;
     this.pendingPairInput = null;
-    this.pendingPairPath = null;
+    this.pendingPairMark = null;
     this.dragOffset = { x: 0, y: 0 };
     this.otherCircleOffset = null;
     const template = document.getElementById('glyph2');
@@ -208,7 +208,10 @@ export default class GlyphController {
           this.bar.appendChild(second);
           const mark = this._markDisplay(name, ratio);
           if (mark) {
-            this.pendingPairPath = mark.path;
+            this.pendingPairMark = {
+              display: mark.display,
+              path: mark.path,
+            };
           }
 
           if (this.currentGlyph) {
@@ -220,9 +223,36 @@ export default class GlyphController {
           this.pendingPairInput.value = name;
           this.pendingPairInput = null;
           const mark = this._markDisplay(name, ratio);
-          if (mark && this.pendingPairPath) {
-            mark.display.addConnection(this.pendingPairPath, mark.path);
-            this.pendingPairPath = null;
+          if (mark && this.pendingPairMark) {
+            if (mark.display !== this.pendingPairMark.display) {
+              const layer = document.getElementById(
+                'timeline-connector-layer'
+              );
+              if (layer) {
+                const start = this.pendingPairMark.display.getMarkerScreenPos(
+                  this.pendingPairMark.path
+                );
+                const end = mark.display.getMarkerScreenPos(mark.path);
+                if (start && end) {
+                  const line = document.createElementNS(
+                    'http://www.w3.org/2000/svg',
+                    'line'
+                  );
+                  line.setAttribute('x1', start.x);
+                  line.setAttribute('y1', start.y);
+                  line.setAttribute('x2', end.x);
+                  line.setAttribute('y2', end.y);
+                  line.setAttribute('class', 'timeline-connector');
+                  layer.appendChild(line);
+                }
+              }
+            } else {
+              mark.display.addConnection(
+                this.pendingPairMark.path,
+                mark.path
+              );
+            }
+            this.pendingPairMark = null;
           }
           if (isSingleBlue && this.currentGlyph) {
             if (typeof this.currentGlyph._removeConnector === 'function') {

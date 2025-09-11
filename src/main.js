@@ -33,6 +33,19 @@ new p5((p) => {
       spatialUIController: spatialUI,
     });
     const wrapper = p.createDiv('').id('timeline-wrapper');
+    const connectorLayer = document.createElementNS(
+      'http://www.w3.org/2000/svg',
+      'svg'
+    );
+    connectorLayer.id = 'timeline-connector-layer';
+    connectorLayer.style.pointerEvents = 'none';
+    connectorLayer.style.position = 'fixed';
+    connectorLayer.style.top = '0';
+    connectorLayer.style.left = '0';
+    connectorLayer.style.width = '100%';
+    connectorLayer.style.height = '100%';
+    connectorLayer.style.zIndex = '1100';
+    wrapper.elt.appendChild(connectorLayer);
     timeline1 = new TimelineDisplay(p, 'timeline-display-1');
     timeline1.build();
     timeline1.container.parent(wrapper);
