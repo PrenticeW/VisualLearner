@@ -46,6 +46,16 @@ new p5((p) => {
     connectorLayer.style.height = '100%';
     connectorLayer.style.zIndex = '1100';
     wrapper.elt.appendChild(connectorLayer);
+    const updateConnectorLayerSize = () => {
+      connectorLayer.setAttribute('width', window.innerWidth);
+      connectorLayer.setAttribute('height', window.innerHeight);
+      connectorLayer.setAttribute(
+        'viewBox',
+        `0 0 ${window.innerWidth} ${window.innerHeight}`
+      );
+    };
+    updateConnectorLayerSize();
+    window.addEventListener('resize', updateConnectorLayerSize);
     timeline1 = new TimelineDisplay(p, 'timeline-display-1');
     timeline1.build();
     timeline1.container.parent(wrapper);
