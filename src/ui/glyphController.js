@@ -65,6 +65,10 @@ export default class GlyphController {
     this.pendingPairMark = null;
     this.dragOffset = { x: 0, y: 0 };
     this.otherCircleOffset = null;
+    if (this.bar) {
+      this._centerSelectionBar();
+      window.addEventListener('resize', () => this._centerSelectionBar());
+    }
     const glyph1 = document.getElementById('glyph');
     this.glyph1Template = glyph1 ? glyph1.cloneNode(true) : null;
     if (this.glyph1Template) {
@@ -220,6 +224,7 @@ export default class GlyphController {
           second.value = '';
           this.bar.appendChild(first);
           this.bar.appendChild(second);
+          this._centerSelectionBar();
           const mark = this._markDisplay(name, ratio);
           if (mark) {
             this.pendingPairMark = {
@@ -288,6 +293,7 @@ export default class GlyphController {
             input.dataset.glyph = glyphId;
           }
           this.bar.appendChild(input);
+          this._centerSelectionBar();
           this._markDisplay(name, ratio);
           if (this.currentGlyph) {
             this.currentGlyph.remove();
@@ -346,6 +352,12 @@ export default class GlyphController {
         }
       });
     });
+  }
+
+  _centerSelectionBar() {
+    if (!this.bar) return;
+    const width = this.bar.getBoundingClientRect().width;
+    this.bar.style.marginLeft = `-${width / 2}px`;
   }
 
   _spawnSingleGlyph(left, top, anchor) {
