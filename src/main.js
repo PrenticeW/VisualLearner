@@ -45,7 +45,7 @@ new p5((p) => {
     connectorLayer.style.width = '100%';
     connectorLayer.style.height = '100%';
     connectorLayer.style.zIndex = '1100';
-    wrapper.elt.appendChild(connectorLayer);
+    document.body.appendChild(connectorLayer);
     const updateConnectorLayerSize = () => {
       connectorLayer.setAttribute('width', window.innerWidth);
       connectorLayer.setAttribute('height', window.innerHeight);
