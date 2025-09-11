@@ -64,6 +64,11 @@ export default class GlyphController {
     this.pendingPairInput = null;
     this.dragOffset = { x: 0, y: 0 };
     this.otherCircleOffset = null;
+    const template = document.getElementById('glyph2');
+    this.glyph2Template = template ? template.cloneNode(true) : null;
+    if (this.glyph2Template) {
+      this.glyph2Template.removeAttribute('id');
+    }
     if (!this.glyphs.length || !this.bar) return;
     this._setupGlyphs();
     this._setupDropTargets();
@@ -218,6 +223,7 @@ export default class GlyphController {
             this.currentGlyph.remove();
             this.currentGlyph = null;
           }
+          this._spawnTwoProngGlyph();
         } else {
           // existing logic to spawn another text box is skipped
         }
@@ -271,6 +277,53 @@ export default class GlyphController {
 
   _spawnSingleGlyph(left, top, anchor) {
     new SingleBlueGlyph(left, top, anchor);
+  }
+
+  _spawnTwoProngGlyph() {
+    let glyph;
+    if (this.glyph2Template) {
+      glyph = this.glyph2Template.cloneNode(true);
+    } else {
+      glyph = document.createElement('div');
+      glyph.className = 'glyph';
+      glyph.dataset.glyph = 'glyph2';
+      glyph.draggable = true;
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.setAttribute('width', '42');
+      svg.setAttribute('height', '42');
+      const line = document.createElementNS(
+        'http://www.w3.org/2000/svg',
+        'line'
+      );
+      line.setAttribute('x1', '35');
+      line.setAttribute('y1', '7');
+      line.setAttribute('x2', '7');
+      line.setAttribute('y2', '35');
+      const circleRight = document.createElementNS(
+        'http://www.w3.org/2000/svg',
+        'circle'
+      );
+      circleRight.setAttribute('data-prong', 'right');
+      circleRight.setAttribute('cx', '35');
+      circleRight.setAttribute('cy', '7');
+      circleRight.setAttribute('r', '7');
+      circleRight.setAttribute('fill', '#3fc009');
+      const circleLeft = document.createElementNS(
+        'http://www.w3.org/2000/svg',
+        'circle'
+      );
+      circleLeft.setAttribute('data-prong', 'left');
+      circleLeft.setAttribute('cx', '7');
+      circleLeft.setAttribute('cy', '35');
+      circleLeft.setAttribute('r', '7');
+      circleLeft.setAttribute('fill', '#3fc009');
+      svg.appendChild(line);
+      svg.appendChild(circleRight);
+      svg.appendChild(circleLeft);
+      glyph.appendChild(svg);
+    }
+    glyph.id = 'glyph2';
+    document.body.appendChild(glyph);
   }
 
   _markDisplay(token, ratio) {
