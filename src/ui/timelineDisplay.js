@@ -85,4 +85,23 @@ export default class TimelineDisplay {
 
     circle.classList.add('glyph-marker');
   }
+
+  /**
+   * Draw a connector line between two marker paths.
+   * @param {string} firstPath
+   * @param {string} secondPath
+   */
+  addConnection(firstPath, secondPath) {
+    if (!this.svg) return;
+    const p1 = this.positionMap[firstPath];
+    const p2 = this.positionMap[secondPath];
+    if (!p1 || !p2) return;
+    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    line.setAttribute('x1', p1.x);
+    line.setAttribute('y1', p1.y);
+    line.setAttribute('x2', p2.x);
+    line.setAttribute('y2', p2.y);
+    line.setAttribute('class', 'glyph-connector');
+    this.svg.appendChild(line);
+  }
 }

@@ -62,6 +62,7 @@ export default class GlyphController {
     this.currentGlyph = null;
     this.currentProng = null;
     this.pendingPairInput = null;
+    this.pendingPairPath = null;
     this.dragOffset = { x: 0, y: 0 };
     this.otherCircleOffset = null;
     const template = document.getElementById('glyph2');
@@ -205,7 +206,10 @@ export default class GlyphController {
           second.value = '';
           this.bar.appendChild(first);
           this.bar.appendChild(second);
-          this._markDisplay(name, ratio);
+          const mark = this._markDisplay(name, ratio);
+          if (mark) {
+            this.pendingPairPath = mark.path;
+          }
 
           if (this.currentGlyph) {
             this.currentGlyph.remove();
@@ -215,7 +219,11 @@ export default class GlyphController {
         } else if (this.pendingPairInput) {
           this.pendingPairInput.value = name;
           this.pendingPairInput = null;
-          this._markDisplay(name, ratio);
+          const mark = this._markDisplay(name, ratio);
+          if (mark && this.pendingPairPath) {
+            mark.display.addConnection(this.pendingPairPath, mark.path);
+            this.pendingPairPath = null;
+          }
           if (isSingleBlue && this.currentGlyph) {
             if (typeof this.currentGlyph._removeConnector === 'function') {
               this.currentGlyph._removeConnector();
@@ -332,6 +340,8 @@ export default class GlyphController {
     if (display) {
       const path = pathParts.join('.') || 'C';
       display.addMarker(path, ratio);
+      return { display, path };
     }
+    return null;
   }
 }

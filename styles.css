@@ -122,3 +122,8 @@ h1 {
 .timeline-display .glyph-marker {
   fill: #3fc009;
 }
+
+.timeline-display .glyph-connector {
+  stroke: #3fc009;
+  stroke-width: 1;
+}
