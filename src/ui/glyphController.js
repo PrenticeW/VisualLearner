@@ -178,6 +178,9 @@ export default class GlyphController {
       btn.addEventListener('dragover', (e) => e.preventDefault());
       btn.addEventListener('drop', (e) => {
         e.preventDefault();
+        const originalColor =
+          btn.dataset.originalColor || btn.style.backgroundColor;
+        btn.dataset.originalColor = originalColor;
         btn.style.backgroundColor = '#3fc009';
 
         const glyphId = e.dataTransfer.getData('text/plain');
@@ -379,6 +382,11 @@ export default class GlyphController {
             }
           });
         }
+
+        // Restore button color after the drop interaction completes
+        setTimeout(() => {
+          btn.style.backgroundColor = originalColor;
+        }, 300);
       });
     });
   }
