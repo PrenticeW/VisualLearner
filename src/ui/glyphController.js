@@ -298,6 +298,10 @@ export default class GlyphController {
         }
 
         if (prong || hasTwoProngs) {
+          if (this.currentGlyph) {
+            this.currentGlyph.remove();
+            this.currentGlyph = null;
+          }
           const offset = prong
             ? this.otherCircleOffset || { x: 0, y: 0 }
             : { x: 0, y: 0 };
