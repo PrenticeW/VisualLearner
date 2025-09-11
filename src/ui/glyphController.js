@@ -65,6 +65,11 @@ export default class GlyphController {
     this.pendingPairMark = null;
     this.dragOffset = { x: 0, y: 0 };
     this.otherCircleOffset = null;
+    const glyph1 = document.getElementById('glyph');
+    this.glyph1Template = glyph1 ? glyph1.cloneNode(true) : null;
+    if (this.glyph1Template) {
+      this.glyph1Template.removeAttribute('id');
+    }
     const template = document.getElementById('glyph2');
     this.glyph2Template = template ? template.cloneNode(true) : null;
     if (this.glyph2Template) {
@@ -173,6 +178,15 @@ export default class GlyphController {
         const name = btn.dataset.name || btn.textContent.trim();
         const prong = e.dataTransfer.getData('prong');
         const isSingleBlue = glyphId === 'singleBlueGlyph';
+
+        if (glyphId === 'glyph' && !prong && this.currentGlyph) {
+          this.currentGlyph.removeAttribute('id');
+          this.currentGlyph.style.width = '15px';
+          this.currentGlyph.style.height = '15px';
+          this.currentGlyph.style.background = '#3fc009';
+          this.currentGlyph.style.borderRadius = '50%';
+          this._spawnSingleCircleGlyph();
+        }
 
         // Determine horizontal ratio of drop within the gesture grid
         const container = btn.parentElement || document.body;
@@ -315,6 +329,27 @@ export default class GlyphController {
 
   _spawnSingleGlyph(left, top, anchor) {
     new SingleBlueGlyph(left, top, anchor);
+  }
+
+  _spawnSingleCircleGlyph() {
+    let glyph;
+    if (this.glyph1Template) {
+      glyph = this.glyph1Template.cloneNode(true);
+    } else {
+      glyph = document.createElement('div');
+      glyph.className = 'glyph';
+      glyph.dataset.glyph = 'glyph';
+      glyph.draggable = true;
+      glyph.style.width = '15px';
+      glyph.style.height = '15px';
+      glyph.style.background = '#3fc009';
+      glyph.style.borderRadius = '50%';
+      glyph.style.right = '20px';
+      glyph.style.top = '50%';
+      glyph.style.transform = 'translateY(-50%)';
+    }
+    glyph.id = 'glyph';
+    document.body.appendChild(glyph);
   }
 
   _spawnTwoProngGlyph() {
