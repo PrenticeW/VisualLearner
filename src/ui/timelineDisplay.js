@@ -72,6 +72,13 @@ export default class TimelineDisplay {
     };
   }
 
+  getMarkerScreenPos(path) {
+    const el = this.tokenMap[path];
+    if (!el) return null;
+    const rect = el.getBoundingClientRect();
+    return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+  }
+
   /**
    * Add a green marker at the given path and horizontal ratio.
    * @param {string} path dotted path such as 'UR.DR'
