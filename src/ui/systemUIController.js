@@ -1,6 +1,7 @@
 // src/ui/systemUIController.js
 
 import ButtonPanelController from '../ui/buttonPanelController.js';
+import { normalizeGestureSequence } from '../utils/gestureNormalizer.js';
 
 export default class SystemUIController {
   constructor(
@@ -128,9 +129,10 @@ export default class SystemUIController {
   _startSystem() {
     if (!this.currentConfig) {
       try {
-        this.currentConfig = this.sequenceManager.getGroupConfig(
+        const cfg = this.sequenceManager.getGroupConfig(
           this.currentSequenceGroup || 0
         );
+        this.currentConfig = this._withNormalizedGestures(cfg);
       } catch (e) {
         console.warn('No sequence config available');
         this.currentConfig = { gestureSeq: [], weightSeq: [] };
@@ -145,6 +147,18 @@ export default class SystemUIController {
 
     // load gestures into dot controller(s)
     const gestures = this.currentConfig.gestureSeq || [];
+    const positionMap =
+      this.spatialUIController.dotController?.positionMap || {};
+    const unresolved = gestures.filter(
+      (token) => token && !positionMap[token]
+    );
+    if (gestures.length > 0) {
+      if (unresolved.length > 0) {
+        console.warn('Unresolved gesture tokens:', unresolved);
+      } else {
+        console.debug('Gesture tokens resolved:', gestures);
+      }
+    }
     const sequences = gestures.length > 0 ? [gestures] : [];
     this.spatialUIController.dotController.loadSequences(sequences);
     this.spatialUIController.dotController.setPopUpMode(this.popUpMode);
@@ -197,38 +211,51 @@ export default class SystemUIController {
 
   _loadAndStartGroup(groupIndex) {
     const cfg = this.sequenceManager.getGroupConfig(groupIndex);
+    const normalizedConfig = this._withNormalizedGestures(cfg);
     this.currentSequenceGroup = groupIndex;
-    this.currentMeasure = cfg.measure;
-    this.currentConfig = cfg;
+    this.currentMeasure = normalizedConfig.measure;
+    this.currentConfig = normalizedConfig;
 
     // apply timerMode
-    this.timerMode = cfg.timerMode;
-    this.timer.setTimerMode(cfg.timerMode);
+    this.timerMode = normalizedConfig.timerMode;
+    this.timer.setTimerMode(normalizedConfig.timerMode);
     const modeLabels = ['Whole', 'One And', 'And One', 'Quarter'];
     this.buttonPanel.updateTimerModeLabel(
-      `Timer Mode: ${modeLabels[cfg.timerMode]}`
+      `Timer Mode: ${modeLabels[normalizedConfig.timerMode]}`
     );
 
     // apply popUpMode
-    this.popUpMode = cfg.popUpMode;
-    this.spatialUIController.dotController.setPopUpMode(cfg.popUpMode);
+    this.popUpMode = normalizedConfig.popUpMode;
+    this.spatialUIController.dotController.setPopUpMode(
+      normalizedConfig.popUpMode
+    );
     this.buttonPanel.updatePopUpModeLabel(
-      `Pop Up Mode: ${cfg.popUpMode ? 'On' : 'Off'}`
+      `Pop Up Mode: ${normalizedConfig.popUpMode ? 'On' : 'Off'}`
     );
 
     // apply tempo & duration
-    if (!isNaN(cfg.tempo)) {
-      this.tempo = cfg.tempo;
-      this.timer.setTempo(cfg.tempo);
-      this.buttonPanel.setTempoValue(cfg.tempo);
+    if (!isNaN(normalizedConfig.tempo)) {
+      this.tempo = normalizedConfig.tempo;
+      this.timer.setTempo(normalizedConfig.tempo);
+      this.buttonPanel.setTempoValue(normalizedConfig.tempo);
     }
-    if (!isNaN(cfg.duration)) {
-      this.duration = cfg.duration;
-      this.timer.setDuration(cfg.duration);
-      this.buttonPanel.updateDurationLabel(`Duration: ${cfg.duration}`);
+    if (!isNaN(normalizedConfig.duration)) {
+      this.duration = normalizedConfig.duration;
+      this.timer.setDuration(normalizedConfig.duration);
+      this.buttonPanel.updateDurationLabel(
+        `Duration: ${normalizedConfig.duration}`
+      );
     }
 
     this._startSystem();
+  }
+
+  _withNormalizedGestures(cfg) {
+    if (!cfg) return cfg;
+    return {
+      ...cfg,
+      gestureSeq: normalizeGestureSequence(cfg.gestureSeq || []),
+    };
   }
 
   // ─── COPY STATE ─────────────────────────────────────────────────────────────
