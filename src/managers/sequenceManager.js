@@ -1,4 +1,6 @@
- // src/managers/sequenceManager.js
+// src/managers/sequenceManager.js
+
+import { normalizeGestureSequence } from '../utils/gestureNormalizer.js';
 
 export default class SequenceManager {
   constructor() {
@@ -47,7 +49,8 @@ export default class SequenceManager {
     ];
     const beatHeaders = this._computeBeatHeaders(state.timerMode, state.duration);
     const beatRow   = ['', 'Beat', ...beatHeaders];
-    const gestureRow= ['', 'Gesture', ...gestureSeq];
+    const normalizedGestures = normalizeGestureSequence(gestureSeq);
+    const gestureRow= ['', 'Gesture', ...normalizedGestures];
     const weightRow = ['', 'Weight',  ...weightSeq];
 
     return [
@@ -144,6 +147,14 @@ export default class SequenceManager {
       weightSeq .push(weightRow .getString(i+2).trim());
     }
 
-    return { measure, timerMode, popUpMode, tempo, duration, gestureSeq, weightSeq };
+    return {
+      measure,
+      timerMode,
+      popUpMode,
+      tempo,
+      duration,
+      gestureSeq: normalizeGestureSequence(gestureSeq),
+      weightSeq,
+    };
   }
 }
