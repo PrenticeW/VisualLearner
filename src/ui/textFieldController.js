@@ -6,6 +6,7 @@ export default class TextFieldController {
     this.maxCols = maxCols;
     this.columns = []; // { inputTop, inputTop2, inputBottom, label }[]
     this.container = null;
+    this.visibleColumnCount = maxCols;
   }
 
   build() {
@@ -59,10 +60,12 @@ export default class TextFieldController {
     }
 
     this.updateLabels(0, 8);
+    this.highlightActiveDot(0);
   }
 
   updateLabels(timerMode, duration) {
     const headers = this._computeBeatHeaders(timerMode, duration);
+    this.visibleColumnCount = headers.length;
     this.columns.forEach((col, i) => {
       if (i < headers.length) {
         col.inputTop.show();
@@ -77,19 +80,60 @@ export default class TextFieldController {
         col.label.hide();
       }
     });
+    this.clearHighlights();
+  }
+
+  getVisibleColumns() {
+    const count = Math.min(
+      this.visibleColumnCount ?? this.columns.length,
+      this.columns.length
+    );
+    return this.columns.slice(0, count);
   }
 
   getGestureValues(dot = 0) {
     const key = dot === 1 ? 'inputTop2' : 'inputTop';
-    return this.columns.map(c => c[key].value().trim()).filter(Boolean);
+    return this.getVisibleColumns().map((c) => c[key].value().trim());
   }
   getWeightValues() {
-    return this.columns.map(c => c.inputBottom.value().trim()).filter(Boolean);
+    return this.getVisibleColumns().map((c) => c.inputBottom.value().trim());
+  }
+
+  setGestureValues(values = [], dot = 0) {
+    const key = dot === 1 ? 'inputTop2' : 'inputTop';
+    const cols = this.getVisibleColumns();
+    cols.forEach((col, i) => {
+      col[key].value(values[i] || '');
+    });
+  }
+
+  setWeightValues(values = []) {
+    const cols = this.getVisibleColumns();
+    cols.forEach((col, i) => {
+      col.inputBottom.value(values[i] || '');
+    });
+  }
+
+  clearGestures(dot = null) {
+    const targets = dot === null ? [0, 1] : [dot];
+    targets.forEach((idx) => {
+      const key = idx === 1 ? 'inputTop2' : 'inputTop';
+      this.columns.forEach((col) => {
+        col[key].value('');
+      });
+    });
+  }
+
+  clearWeights() {
+    this.columns.forEach((col) => {
+      col.inputBottom.value('');
+    });
   }
 
   highlight(index) {
     this.clearHighlights();
-    const filled = this.columns.filter(
+    const columns = this.getVisibleColumns();
+    const filled = columns.filter(
       (c) =>
         c.inputTop.value().trim() ||
         c.inputTop2.value().trim() ||
@@ -97,6 +141,19 @@ export default class TextFieldController {
     );
     if (filled.length === 0) return;
     const col = filled[index % filled.length];
+    col.inputTop.style('background-color', 'rgba(255,200,200,1)');
+    col.inputTop2.style('background-color', 'rgba(255,200,200,1)');
+    col.inputBottom.style('background-color', 'rgba(255,200,200,1)');
+    col.label.style('background-color', 'rgba(255,200,200,1)');
+  }
+
+  highlightStep(index) {
+    this.clearHighlights();
+    const columns = this.getVisibleColumns();
+    const count = columns.length;
+    if (count === 0) return;
+    const idx = ((index % count) + count) % count;
+    const col = columns[idx];
     col.inputTop.style('background-color', 'rgba(255,200,200,1)');
     col.inputTop2.style('background-color', 'rgba(255,200,200,1)');
     col.inputBottom.style('background-color', 'rgba(255,200,200,1)');
@@ -141,7 +198,7 @@ export default class TextFieldController {
 
   addGestureName(name, dot = 0) {
     const key = dot === 1 ? 'inputTop2' : 'inputTop';
-    for (const col of this.columns) {
+    for (const col of this.getVisibleColumns()) {
       if (!col[key].value().trim()) {
         col[key].value(name);
         return;
@@ -151,7 +208,7 @@ export default class TextFieldController {
 
   /** Called by SpatialUIController when a weight button is pressed */
   addWeightName(name) {
-    for (const col of this.columns) {
+    for (const col of this.getVisibleColumns()) {
       if (!col.inputBottom.value().trim()) {
         col.inputBottom.value(name);
         return;

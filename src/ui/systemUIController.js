@@ -1,6 +1,7 @@
 // src/ui/systemUIController.js
 
 import ButtonPanelController from '../ui/buttonPanelController.js';
+import TextFieldController from '../ui/textFieldController.js';
 import { normalizeGestureSequence } from '../utils/gestureNormalizer.js';
 
 export default class SystemUIController {
@@ -37,8 +38,18 @@ export default class SystemUIController {
     this.weightSequence = [];
     this.weightIndex = 0;
 
+    this.activeDotIndex = 0;
+    this.totalStepCount = 0;
+    this.stepIndex = 0;
+
+    this.textFieldController = new TextFieldController(p);
+    this.textFieldController.build();
+    this.textFieldController.updateLabels(this.timerMode, this.duration);
+    this.textFieldController.highlightActiveDot(this.activeDotIndex);
+
     // -- build button panel --
     this.buttonPanel = new ButtonPanelController(p, {
+      initialTempo: this.tempo,
       toggleTimerMode: () => {
         this.timerMode = (this.timerMode + 1) % 4;
         const labels = ['Whole', 'One And', 'And One', 'Quarter'];
@@ -51,6 +62,8 @@ export default class SystemUIController {
         const subs = this.timer.getSubdivisionsPerBeat();
         this.spatialUIController.dotController.tickIntervalMs =
           60000 / (this.tempo * subs);
+        this.textFieldController.updateLabels(this.timerMode, this.duration);
+        this.textFieldController.highlightActiveDot(this.activeDotIndex);
       },
       setTempo: () => {
         const t = parseInt(this.buttonPanel.getTempoValue(), 10);
@@ -66,7 +79,12 @@ export default class SystemUIController {
         }
       },
       startStop: () => {
-        this.systemRunning ? this._stopSystem() : this._startSystem();
+        if (this.systemRunning) {
+          this._stopSystem();
+        } else {
+          this._captureInputsIntoConfig();
+          this._startSystem();
+        }
       },
       togglePopUp: () => {
         this.popUpMode = !this.popUpMode;
@@ -79,6 +97,8 @@ export default class SystemUIController {
         this.duration = this.duration === 8 ? 4 : 8;
         this.timer.setDuration(this.duration);
         this.buttonPanel.updateDurationLabel(`Duration: ${this.duration}`);
+        this.textFieldController.updateLabels(this.timerMode, this.duration);
+        this.textFieldController.highlightActiveDot(this.activeDotIndex);
       },
       toggleWeights: () => {
         this.weightsVisible = !this.weightsVisible;
@@ -91,12 +111,27 @@ export default class SystemUIController {
           `Weights: ${this.weightsVisible ? 'On' : 'Off'}`
         );
       },
+      setActiveDot: (dotIndex) => {
+        this.activeDotIndex = dotIndex;
+        this.textFieldController.highlightActiveDot(this.activeDotIndex);
+      },
+      clearGesture: () => this._clearGestureInputs(this.activeDotIndex),
+      clearWeight: () => this._clearWeightInputs(),
       undoGlyph: () => this.glyphController?.undoLastGlyph(),
       copyState: () => this.copyState(),
       playSeq: () => this.loadFirstSequence(),
       nextSeq: () => this.loadNextSequence(),
     });
     this.buttonPanel.build();
+
+    this.spatialUIController.setGestureCallback((name) => {
+      console.log('[SystemUI] gesture input from spatial UI:', name);
+      this.textFieldController?.addGestureName(name, this.activeDotIndex);
+    });
+    this.spatialUIController.setWeightCallback((name) => {
+      console.log('[SystemUI] weight input from spatial UI:', name);
+      this.textFieldController?.addWeightName(name);
+    });
 
     // advance dots/orbs on subdivision
     this.timer.on('subdivision', () => {
@@ -113,6 +148,14 @@ export default class SystemUIController {
         this.spatialUIController.orbControllers[side].setHighlight(section);
         this.spatialUIController.orbControllers[other].clearHighlight();
         this.weightIndex = (this.weightIndex + 1) % len;
+      } else {
+        this.spatialUIController.orbControllers.L.clearHighlight();
+        this.spatialUIController.orbControllers.R.clearHighlight();
+      }
+
+      if (this.totalStepCount > 0 && this.textFieldController) {
+        this.textFieldController.highlightStep(this.stepIndex);
+        this.stepIndex = (this.stepIndex + 1) % this.totalStepCount;
       }
     });
   }
@@ -126,6 +169,75 @@ export default class SystemUIController {
 
   // ─── SYSTEM START / STOP ────────────────────────────────────────────────────
 
+  _captureInputsIntoConfig() {
+    if (!this.textFieldController) return;
+
+    const primaryInputs = this.textFieldController.getGestureValues(0);
+    const secondaryInputs = this.textFieldController.getGestureValues(1);
+    const weightInputs = this.textFieldController.getWeightValues();
+
+    const normalizedPrimary = normalizeGestureSequence(primaryInputs);
+    const normalizedSecondary = normalizeGestureSequence(secondaryInputs);
+
+    const primaryHasTokens = normalizedPrimary.some((token) => token);
+    const secondaryHasTokens = normalizedSecondary.some((token) => token);
+
+    const gestureSeqs = [];
+    if (primaryHasTokens) {
+      gestureSeqs.push(normalizedPrimary);
+    }
+    if (secondaryHasTokens) {
+      gestureSeqs.push(normalizedSecondary);
+    }
+
+    const gestureSeq = primaryHasTokens
+      ? normalizedPrimary
+      : secondaryHasTokens
+      ? normalizedSecondary
+      : normalizedPrimary;
+
+    const config = {
+      measure: null,
+      timerMode: this.timerMode,
+      popUpMode: this.popUpMode,
+      tempo: this.tempo,
+      duration: this.duration,
+      gestureSeq,
+      gestureSeqs,
+      weightSeq: weightInputs,
+    };
+
+    this.currentConfig = this._withNormalizedGestures(config);
+  }
+
+  _applyConfigToInputs(config) {
+    if (!config || !this.textFieldController) return;
+
+    const sequences =
+      config.gestureSeqs && config.gestureSeqs.length > 0
+        ? config.gestureSeqs
+        : [config.gestureSeq || []];
+
+    const primary = sequences[0] || [];
+    const secondary = sequences[1] || [];
+
+    this.textFieldController.setGestureValues(primary, 0);
+    this.textFieldController.setGestureValues(secondary, 1);
+    this.textFieldController.setWeightValues(config.weightSeq || []);
+  }
+
+  _clearGestureInputs(dot = this.activeDotIndex) {
+    this.textFieldController?.clearGestures(dot);
+  }
+
+  _clearWeightInputs() {
+    this.textFieldController?.clearWeights();
+    this.weightSequence = [];
+    this.weightIndex = 0;
+    this.spatialUIController.orbControllers.L.clearHighlight();
+    this.spatialUIController.orbControllers.R.clearHighlight();
+  }
+
   _startSystem() {
     if (!this.currentConfig) {
       try {
@@ -135,42 +247,72 @@ export default class SystemUIController {
         this.currentConfig = this._withNormalizedGestures(cfg);
       } catch (e) {
         console.warn('No sequence config available');
-        this.currentConfig = { gestureSeq: [], weightSeq: [] };
+        this.currentConfig = { gestureSeq: [], gestureSeqs: [], weightSeq: [] };
       }
     }
 
-    // load gestures into dot controller(s)
-    const gestures = this.currentConfig.gestureSeq || [];
     const positionMap =
       this.spatialUIController.dotController?.positionMap || {};
-    const validGestures = gestures.filter(
-      (token) => token && positionMap[token]
-    );
-    const unresolved = gestures.filter(
-      (token) => token && !positionMap[token]
-    );
+    const rawSequences =
+      this.currentConfig.gestureSeqs && this.currentConfig.gestureSeqs.length > 0
+        ? this.currentConfig.gestureSeqs
+        : [this.currentConfig.gestureSeq || []];
 
+    const resolvedSequences = rawSequences.map((sequence, index) => {
+      const valid = [];
+      const invalid = [];
+      sequence.forEach((token) => {
+        if (!token) return;
+        if (positionMap[token]) {
+          valid.push(token);
+        } else {
+          invalid.push(token);
+        }
+      });
+      return { index, valid, invalid };
+    });
+
+    const unresolved = resolvedSequences.flatMap((seq) => seq.invalid);
     if (unresolved.length > 0) {
       console.warn('Filtered unresolved gesture tokens:', unresolved);
     }
 
-    this.currentConfig.gestureSeq = validGestures;
-
-    if (validGestures.length < 2) {
+    const primary = resolvedSequences[0]?.valid || [];
+    if (primary.length < 2) {
       const message =
         'At least two valid gesture tokens are required to start the system.';
       console.warn(message, {
-        validGestures,
+        resolvedSequences: resolvedSequences.map((seq) => seq.valid),
         unresolved,
       });
       this.buttonPanel.updateStatusMessage(message);
       this.systemRunning = false;
       this.buttonPanel.buttons.startStop.html('Go');
       this.timer.stop();
+      this.textFieldController?.clearHighlights();
+      this.totalStepCount = 0;
+      this.stepIndex = 0;
       return;
     }
 
-    console.debug('Gesture tokens resolved:', validGestures);
+    const secondarySequences = [];
+    resolvedSequences.slice(1).forEach((seq, idx) => {
+      if (seq.valid.length >= 2) {
+        secondarySequences.push(seq.valid);
+      } else if (seq.valid.length > 0) {
+        console.warn(
+          `Ignoring gesture sequence ${idx + 2} with fewer than two valid tokens.`,
+          seq.valid
+        );
+      }
+    });
+
+    const validSequences = [primary, ...secondarySequences];
+
+    console.debug('Gesture tokens resolved:', validSequences);
+
+    this.currentConfig.gestureSeq = primary;
+    this.currentConfig.gestureSeqs = validSequences;
 
     this.systemRunning = true;
     this.buttonPanel.updateStatusMessage('System running');
@@ -179,8 +321,7 @@ export default class SystemUIController {
 
     this.timer.start();
 
-    const sequences = [validGestures];
-    this.spatialUIController.dotController.loadSequences(sequences);
+    this.spatialUIController.dotController.loadSequences(validSequences);
     this.spatialUIController.dotController.setPopUpMode(this.popUpMode);
     const subs = this.timer.getSubdivisionsPerBeat();
     this.spatialUIController.dotController.tickIntervalMs =
@@ -188,8 +329,7 @@ export default class SystemUIController {
     this.spatialUIController.dotController.advance();
     this.spatialUIController.dotController.start();
 
-    // prime orb sequence
-    this.weightSequence = this.currentConfig.weightSeq || [];
+    this.weightSequence = (this.currentConfig.weightSeq || []).filter(Boolean);
     if (this.weightSequence.length > 0) {
       const first = this.weightSequence[0];
       const parts = first.split('.');
@@ -199,8 +339,23 @@ export default class SystemUIController {
       const other = side === 'L' ? 'R' : 'L';
       this.spatialUIController.orbControllers[side].setHighlight(section);
       this.spatialUIController.orbControllers[other].clearHighlight();
+    } else {
+      this.spatialUIController.orbControllers.L.clearHighlight();
+      this.spatialUIController.orbControllers.R.clearHighlight();
     }
     this.weightIndex = this.weightSequence.length > 1 ? 1 : 0;
+
+    this.totalStepCount = validSequences.reduce(
+      (max, seq) => Math.max(max, seq.length),
+      0
+    );
+    this.totalStepCount = Math.max(this.totalStepCount, this.weightSequence.length);
+    this.stepIndex = 0;
+    if (this.totalStepCount > 0 && this.textFieldController) {
+      this.textFieldController.highlightStep(0);
+    } else {
+      this.textFieldController?.clearHighlights();
+    }
 
     this.spatialUIController.showContextMarkersOn();
   }
@@ -215,6 +370,10 @@ export default class SystemUIController {
     this.spatialUIController.orbControllers.L.clearHighlight();
     this.spatialUIController.orbControllers.R.clearHighlight();
     this.spatialUIController.showContextMarkersOff();
+    this.textFieldController?.clearHighlights();
+    this.totalStepCount = 0;
+    this.stepIndex = 0;
+    this.weightSequence = [];
     this.weightIndex = 0;
   }
 
@@ -268,22 +427,47 @@ export default class SystemUIController {
       );
     }
 
+    if (this.textFieldController) {
+      this.textFieldController.updateLabels(this.timerMode, this.duration);
+      this.textFieldController.highlightActiveDot(this.activeDotIndex);
+      this._applyConfigToInputs(normalizedConfig);
+    }
+
     this._startSystem();
   }
 
   _withNormalizedGestures(cfg) {
     if (!cfg) return cfg;
+    const primary = normalizeGestureSequence(cfg.gestureSeq || []);
+    const normalizedSequences = Array.isArray(cfg.gestureSeqs)
+      ? cfg.gestureSeqs.map((seq) => normalizeGestureSequence(seq || []))
+      : [];
+    const filteredSequences = normalizedSequences.filter((seq) =>
+      seq.some((token) => token)
+    );
+    const gestureSeqs =
+      filteredSequences.length > 0
+        ? filteredSequences
+        : primary.some((token) => token)
+        ? [primary]
+        : [];
+    const gestureSeq = gestureSeqs.length > 0 ? gestureSeqs[0] : primary;
     return {
       ...cfg,
-      gestureSeq: normalizeGestureSequence(cfg.gestureSeq || []),
+      gestureSeq,
+      gestureSeqs,
     };
   }
 
   // ─── COPY STATE ─────────────────────────────────────────────────────────────
 
   copyState() {
-    const gestureSeq = this.currentConfig?.gestureSeq || [];
-    const weightSeq = this.currentConfig?.weightSeq || [];
+    const gestureSeq = this.textFieldController
+      ? this.textFieldController.getGestureValues(0)
+      : this.currentConfig?.gestureSeq || [];
+    const weightSeq = this.textFieldController
+      ? this.textFieldController.getWeightValues()
+      : this.currentConfig?.weightSeq || [];
     const state = {
       timerMode: this.timerMode,
       popUpMode: this.popUpMode,
