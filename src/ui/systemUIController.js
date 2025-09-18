@@ -174,11 +174,24 @@ export default class SystemUIController {
       gestureSeqs.push(normalizedSecondary);
     }
 
-    const gestureSeq = primaryHasTokens
+    let gestureSeq = primaryHasTokens
       ? normalizedPrimary
       : secondaryHasTokens
       ? normalizedSecondary
       : normalizedPrimary;
+
+    if (gestureSeqs.length === 0) {
+      const dotController = this.spatialUIController?.dotController;
+      if (dotController && typeof dotController.getGlyphSequences === 'function') {
+        const glyphSequences = dotController.getGlyphSequences();
+        if (glyphSequences.length > 0) {
+          glyphSequences.forEach((sequence) => {
+            gestureSeqs.push(normalizeGestureSequence(sequence));
+          });
+          gestureSeq = gestureSeqs[0] || [];
+        }
+      }
+    }
 
     const config = {
       measure: null,
@@ -223,12 +236,22 @@ export default class SystemUIController {
       }
     }
 
-    const positionMap =
-      this.spatialUIController.dotController?.positionMap || {};
-    const rawSequences =
+    const dotController = this.spatialUIController.dotController;
+    const positionMap = dotController?.positionMap || {};
+    let rawSequences =
       this.currentConfig.gestureSeqs && this.currentConfig.gestureSeqs.length > 0
         ? this.currentConfig.gestureSeqs
         : [this.currentConfig.gestureSeq || []];
+
+    const hasGestureTokens = rawSequences.some(
+      (sequence) => sequence && sequence.some((token) => token)
+    );
+    if (!hasGestureTokens && dotController && typeof dotController.getGlyphSequences === 'function') {
+      const glyphSequences = dotController.getGlyphSequences();
+      if (glyphSequences.length > 0) {
+        rawSequences = glyphSequences;
+      }
+    }
 
     const resolvedSequences = rawSequences.map((sequence, index) => {
       const valid = [];
