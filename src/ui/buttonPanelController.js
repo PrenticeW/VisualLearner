@@ -7,6 +7,7 @@ export default class ButtonPanelController {
     this.container = null;
     this.buttons = {};
     this.tempoInput = null;
+    this.statusMessage = null;
   }
 
   build() {
@@ -74,6 +75,19 @@ export default class ButtonPanelController {
     makeBtn('undoGlyph', 'Undo Glyph', 80);
     makeBtn('playSeq', 'Play Sequence', 120);
     makeBtn('nextSeq', 'Next Sequence', 120);
+
+    this.statusMessage = p
+      .createSpan('')
+      .style('margin-left', 'auto')
+      .style('font-size', '12px')
+      .style('color', '#b45309')
+      .style('min-height', '20px')
+      .style('display', 'flex')
+      .style('align-items', 'center')
+      .style('visibility', 'hidden')
+      .attribute('role', 'status')
+      .attribute('aria-live', 'polite')
+      .parent(this.container);
   }
 
   // Expose a getter so SystemUIController can read the input’s value
@@ -98,5 +112,11 @@ export default class ButtonPanelController {
 
   updateWeightsLabel(text) {
     this.buttons.toggleWeights.html(text);
+  }
+
+  updateStatusMessage(text) {
+    if (!this.statusMessage) return;
+    this.statusMessage.html(text || '');
+    this.statusMessage.style('visibility', text ? 'visible' : 'hidden');
   }
 }

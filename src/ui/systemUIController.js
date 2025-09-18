@@ -163,7 +163,7 @@ export default class SystemUIController {
         validGestures,
         unresolved,
       });
-      alert(message);
+      this.buttonPanel.updateStatusMessage(message);
       this.systemRunning = false;
       this.buttonPanel.buttons.startStop.html('Go');
       this.timer.stop();
@@ -173,6 +173,7 @@ export default class SystemUIController {
     console.debug('Gesture tokens resolved:', validGestures);
 
     this.systemRunning = true;
+    this.buttonPanel.updateStatusMessage('System running');
     this.buttonPanel.buttons.startStop.html('Stop');
     this.spatialUIController.hideGestureButtons();
 
@@ -207,6 +208,7 @@ export default class SystemUIController {
   _stopSystem() {
     this.systemRunning = false;
     this.buttonPanel.buttons.startStop.html('Go');
+    this.buttonPanel.updateStatusMessage('System stopped');
     this.spatialUIController.showGestureButtons();
     this.timer.stop();
     this.spatialUIController.dotController.stop();
