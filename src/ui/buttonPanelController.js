@@ -65,7 +65,7 @@ export default class ButtonPanelController {
     );
 
     // Other controls
-    makeBtn('startStop', 'Go', 60);
+    makeBtn('glyphGo', 'Glyph Go', 80);
     makeBtn('toggleWeights', 'Weights: Off', 100);
     makeBtn('copyState', 'Copy State', 80);
     makeBtn('undoGlyph', 'Undo Glyph', 80);

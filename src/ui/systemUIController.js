@@ -78,12 +78,11 @@ export default class SystemUIController {
           alert('Please enter a positive tempo');
         }
       },
-      startStop: () => {
+      glyphGo: () => {
         if (this.systemRunning) {
           this._stopSystem();
         } else {
-          this._captureInputsIntoConfig();
-          this._startSystem();
+          this._startGlyphFromSelectionBar();
         }
       },
       toggleWeights: () => {
@@ -207,6 +206,145 @@ export default class SystemUIController {
     this.currentConfig = this._withNormalizedGestures(config);
   }
 
+  _startGlyphFromSelectionBar() {
+    const dotController = this.spatialUIController?.dotController;
+    if (!dotController) {
+      this.buttonPanel.updateStatusMessage(
+        'Glyph dot controller is unavailable.'
+      );
+      return;
+    }
+
+    if (typeof dotController.syncFromGlyphs === 'function') {
+      dotController.syncFromGlyphs();
+    }
+
+    const glyphSequences =
+      typeof dotController.getGlyphSequences === 'function'
+        ? dotController.getGlyphSequences()
+        : [];
+
+    if (glyphSequences.length === 0) {
+      this.buttonPanel.updateStatusMessage(
+        'Add glyph tokens to the selection bar to start playback.'
+      );
+      this.buttonPanel.buttons.glyphGo?.html('Glyph Go');
+      this.timer.stop();
+      dotController.stop();
+      this.systemRunning = false;
+      this.totalStepCount = 0;
+      this.stepIndex = 0;
+      this.weightSequence = [];
+      this.weightIndex = 0;
+      this.currentConfig = null;
+      this.textFieldController?.clearHighlights();
+      this.spatialUIController.showContextMarkersOff();
+      this.spatialUIController.showGestureButtons();
+      return;
+    }
+
+    const normalizedSequences = glyphSequences.map((sequence) =>
+      normalizeGestureSequence(sequence)
+    );
+
+    const positionMap = dotController.positionMap || {};
+    const resolvedSequences = normalizedSequences.map((sequence, index) => {
+      const valid = [];
+      const invalid = [];
+      sequence.forEach((token) => {
+        if (!token) return;
+        if (positionMap[token]) {
+          valid.push(token);
+        } else {
+          invalid.push(token);
+        }
+      });
+      return { index, valid, invalid };
+    });
+
+    const unresolved = resolvedSequences.flatMap((seq) => seq.invalid);
+    if (unresolved.length > 0) {
+      console.warn('Filtered unresolved glyph tokens:', unresolved);
+    }
+
+    const primary = resolvedSequences[0]?.valid || [];
+    if (primary.length < 2) {
+      const message =
+        'Add at least two valid glyph tokens before starting playback.';
+      this.buttonPanel.updateStatusMessage(message);
+      this.buttonPanel.buttons.glyphGo?.html('Glyph Go');
+      this.timer.stop();
+      dotController.stop();
+      this.systemRunning = false;
+      this.totalStepCount = 0;
+      this.stepIndex = 0;
+      this.weightSequence = [];
+      this.weightIndex = 0;
+      this.currentConfig = null;
+      this.textFieldController?.clearHighlights();
+      this.spatialUIController.showContextMarkersOff();
+      this.spatialUIController.showGestureButtons();
+      return;
+    }
+
+    const secondarySequences = [];
+    resolvedSequences.slice(1).forEach((seq, idx) => {
+      if (seq.valid.length >= 2) {
+        secondarySequences.push(seq.valid);
+      } else if (seq.valid.length > 0) {
+        console.warn(
+          `Ignoring glyph sequence ${idx + 2} with fewer than two valid tokens.`,
+          seq.valid
+        );
+      }
+    });
+
+    const validSequences = [primary, ...secondarySequences];
+
+    this.currentConfig = {
+      measure: null,
+      timerMode: this.timerMode,
+      popUpMode: this.popUpMode,
+      tempo: this.tempo,
+      duration: this.duration,
+      gestureSeq: primary,
+      gestureSeqs: validSequences,
+      weightSeq: [],
+    };
+
+    this.systemRunning = true;
+    this.buttonPanel.updateStatusMessage('Glyph playback running');
+    this.buttonPanel.buttons.glyphGo?.html('Stop Glyph');
+    this.spatialUIController.hideGestureButtons();
+
+    this.timer.start();
+
+    dotController.loadSequences(validSequences);
+    dotController.setPopUpMode(this.popUpMode);
+
+    const subs = this.timer.getSubdivisionsPerBeat();
+    dotController.tickIntervalMs = 60000 / (this.tempo * subs);
+    dotController.advance();
+    dotController.start();
+
+    this.weightSequence = [];
+    this.weightIndex = 0;
+
+    this.totalStepCount = validSequences.reduce(
+      (max, seq) => Math.max(max, seq.length),
+      0
+    );
+    this.totalStepCount = Math.max(this.totalStepCount, this.weightSequence.length);
+    this.stepIndex = 0;
+    if (this.totalStepCount > 0 && this.textFieldController) {
+      this.textFieldController.highlightStep(0);
+    } else {
+      this.textFieldController?.clearHighlights();
+    }
+
+    this.spatialUIController.showContextMarkersOn();
+  }
+
   _applyConfigToInputs(config) {
     if (!config || !this.textFieldController) return;
 
@@ -282,7 +420,7 @@ export default class SystemUIController {
       });
       this.buttonPanel.updateStatusMessage(message);
       this.systemRunning = false;
-      this.buttonPanel.buttons.startStop.html('Go');
+      this.buttonPanel.buttons.glyphGo?.html('Glyph Go');
       this.timer.stop();
       this.textFieldController?.clearHighlights();
       this.totalStepCount = 0;
@@ -311,7 +449,7 @@ export default class SystemUIController {
 
     this.systemRunning = true;
     this.buttonPanel.updateStatusMessage('System running');
-    this.buttonPanel.buttons.startStop.html('Stop');
+    this.buttonPanel.buttons.glyphGo?.html('Stop Glyph');
     this.spatialUIController.hideGestureButtons();
 
     this.timer.start();
@@ -355,10 +493,10 @@ export default class SystemUIController {
     this.spatialUIController.showContextMarkersOn();
   }
 
-  _stopSystem() {
+  _stopSystem(message = 'System stopped') {
     this.systemRunning = false;
-    this.buttonPanel.buttons.startStop.html('Go');
-    this.buttonPanel.updateStatusMessage('System stopped');
+    this.buttonPanel.buttons.glyphGo?.html('Glyph Go');
+    this.buttonPanel.updateStatusMessage(message);
     this.spatialUIController.showGestureButtons();
     this.timer.stop();
     this.spatialUIController.dotController.stop();
