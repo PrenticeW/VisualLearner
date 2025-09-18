@@ -86,20 +86,6 @@ export default class SystemUIController {
           this._startSystem();
         }
       },
-      togglePopUp: () => {
-        this.popUpMode = !this.popUpMode;
-        this.spatialUIController.dotController.setPopUpMode(this.popUpMode);
-        this.buttonPanel.updatePopUpModeLabel(
-          `Pop Up Mode: ${this.popUpMode ? 'On' : 'Off'}`
-        );
-      },
-      toggleDuration: () => {
-        this.duration = this.duration === 8 ? 4 : 8;
-        this.timer.setDuration(this.duration);
-        this.buttonPanel.updateDurationLabel(`Duration: ${this.duration}`);
-        this.textFieldController.updateLabels(this.timerMode, this.duration);
-        this.textFieldController.highlightActiveDot(this.activeDotIndex);
-      },
       toggleWeights: () => {
         this.weightsVisible = !this.weightsVisible;
         if (this.weightsVisible) {
@@ -115,8 +101,6 @@ export default class SystemUIController {
         this.activeDotIndex = dotIndex;
         this.textFieldController.highlightActiveDot(this.activeDotIndex);
       },
-      clearGesture: () => this._clearGestureInputs(this.activeDotIndex),
-      clearWeight: () => this._clearWeightInputs(),
       undoGlyph: () => this.glyphController?.undoLastGlyph(),
       copyState: () => this.copyState(),
       playSeq: () => this.loadFirstSequence(),
@@ -224,18 +208,6 @@ export default class SystemUIController {
     this.textFieldController.setGestureValues(primary, 0);
     this.textFieldController.setGestureValues(secondary, 1);
     this.textFieldController.setWeightValues(config.weightSeq || []);
-  }
-
-  _clearGestureInputs(dot = this.activeDotIndex) {
-    this.textFieldController?.clearGestures(dot);
-  }
-
-  _clearWeightInputs() {
-    this.textFieldController?.clearWeights();
-    this.weightSequence = [];
-    this.weightIndex = 0;
-    this.spatialUIController.orbControllers.L.clearHighlight();
-    this.spatialUIController.orbControllers.R.clearHighlight();
   }
 
   _startSystem() {
@@ -409,9 +381,6 @@ export default class SystemUIController {
     this.spatialUIController.dotController.setPopUpMode(
       normalizedConfig.popUpMode
     );
-    this.buttonPanel.updatePopUpModeLabel(
-      `Pop Up Mode: ${normalizedConfig.popUpMode ? 'On' : 'Off'}`
-    );
 
     // apply tempo & duration
     if (!isNaN(normalizedConfig.tempo)) {
@@ -422,9 +391,6 @@ export default class SystemUIController {
     if (!isNaN(normalizedConfig.duration)) {
       this.duration = normalizedConfig.duration;
       this.timer.setDuration(normalizedConfig.duration);
-      this.buttonPanel.updateDurationLabel(
-        `Duration: ${normalizedConfig.duration}`
-      );
     }
 
     if (this.textFieldController) {

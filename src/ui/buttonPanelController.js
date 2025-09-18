@@ -1,4 +1,4 @@
- // src/ui/ButtonPanelController.js
+// src/ui/ButtonPanelController.js
 
 export default class ButtonPanelController {
   constructor(p, handlers = {}) {
@@ -66,12 +66,8 @@ export default class ButtonPanelController {
 
     // Other controls
     makeBtn('startStop', 'Go', 60);
-    makeBtn('togglePopUp', 'Pop Up Mode: Off', 100);
-    makeBtn('toggleDuration', 'Duration: 8', 80);
     makeBtn('toggleWeights', 'Weights: Off', 100);
     makeBtn('copyState', 'Copy State', 80);
-    makeBtn('clearWeight', 'Clear Weight', 80);
-    makeBtn('clearGesture', 'Clear Gesture', 80);
     makeBtn('undoGlyph', 'Undo Glyph', 80);
     makeBtn('playSeq', 'Play Sequence', 120);
     makeBtn('nextSeq', 'Next Sequence', 120);
@@ -102,12 +98,6 @@ export default class ButtonPanelController {
 
   updateTimerModeLabel(text) {
     this.buttons.toggleTimerMode.html(text);
-  }
-  updatePopUpModeLabel(text) {
-    this.buttons.togglePopUp.html(text);
-  }
-  updateDurationLabel(text) {
-    this.buttons.toggleDuration.html(text);
   }
 
   updateWeightsLabel(text) {
