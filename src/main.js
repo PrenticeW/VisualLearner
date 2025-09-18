@@ -69,14 +69,6 @@ new p5((p) => {
     });
     systemUI.setGlyphController(glyphCtrl);
 
-    // ─── OPTIONAL SPATIALUI CALLBACKS ─────────────────────────────────────────
-    spatialUI.setGestureCallback((name) => {
-      console.log('[main] gesture:', name);
-    });
-    spatialUI.setWeightCallback((name) => {
-      console.log('[main] weight:', name);
-    });
-
     console.log('✅ All systems ready and UI wired');
   };
 
