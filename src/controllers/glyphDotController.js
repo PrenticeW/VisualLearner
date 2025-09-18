@@ -67,6 +67,18 @@ export default class GlyphDotController extends MultiDotController {
     super.loadSequences(sequences);
   }
 
+  /**
+   * Return the current glyph sequences, falling back to the last stored
+   * sequences if the selection bar is empty.
+   */
+  getGlyphSequences() {
+    const glyphSequences = this._extractSequencesFromSelectionBar();
+    if (glyphSequences.length > 0) {
+      return glyphSequences.map((sequence) => sequence.slice());
+    }
+    return this._fallbackSequences.map((seq) => seq.slice());
+  }
+
   /** Pull sequences from the glyph selection bar, falling back when empty. */
   syncFromGlyphs() {
     const glyphSequences = this._extractSequencesFromSelectionBar();
