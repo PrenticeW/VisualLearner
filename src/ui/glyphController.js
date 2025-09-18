@@ -86,6 +86,11 @@ export default class GlyphController {
     this._setupDropTargets();
   }
 
+  _notifyGlyphChange() {
+    if (!this.bar) return;
+    this.bar.dispatchEvent(new CustomEvent('glyph-change'));
+  }
+
   _setupGlyphs() {
     document.addEventListener('dragstart', (e) => {
       const glyph = e.target.closest(this.glyphSelector);
@@ -388,6 +393,8 @@ export default class GlyphController {
           });
         }
 
+        this._notifyGlyphChange();
+
       });
     });
   }
@@ -415,6 +422,7 @@ export default class GlyphController {
       this.pendingPairInput = null;
       this.pendingPairMark = null;
       this._centerSelectionBar();
+      this._notifyGlyphChange();
       return;
     }
     const last = this.actionStack.pop();
@@ -433,6 +441,7 @@ export default class GlyphController {
       btn.style.backgroundColor = originalColor;
       delete btn.dataset.originalColor;
     });
+    this._notifyGlyphChange();
   }
 
   _centerSelectionBar() {

@@ -1,6 +1,6 @@
  // src/ui/spatialUIController.js
 
-import MultiDotController from '../controllers/multiDotController.js';
+import GlyphDotController from '../controllers/glyphDotController.js';
 import OrbController from '../controllers/orbController.js';
 
 export default class SpatialUIController {
@@ -244,14 +244,16 @@ export default class SpatialUIController {
     });
 
     // instantiate & initialize dot controller(s) exactly once
-    this.dotController = new MultiDotController(this.p, {
+    this.dotController = new GlyphDotController(this.p, {
       positionMap: gesturePositions,
       moveDurationMs: 500,
+      selectionBarSelector: '#selection-bar',
     });
     this.dotController.loadSequences([
       ['L.C', 'L.U', 'L.D', 'L.L', 'L.R'],
       ['R.C', 'R.U', 'R.D', 'R.L', 'R.R'],
     ]);
+    this.dotController.syncFromGlyphs();
   }
 
   render(dt) {
