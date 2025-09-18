@@ -240,6 +240,7 @@ export default class SpatialUIController {
     const gesturePositions = {};
     this.allGestureObjects.forEach((obj) => {
       Object.assign(gesturePositions, obj.getPositions());
+      gesturePositions[obj.prefix] = { x: obj.center.x, y: obj.center.y };
     });
 
     // instantiate & initialize dot controller(s) exactly once
