@@ -139,27 +139,46 @@ export default class SystemUIController {
       }
     }
 
+    // load gestures into dot controller(s)
+    const gestures = this.currentConfig.gestureSeq || [];
+    const positionMap =
+      this.spatialUIController.dotController?.positionMap || {};
+    const validGestures = gestures.filter(
+      (token) => token && positionMap[token]
+    );
+    const unresolved = gestures.filter(
+      (token) => token && !positionMap[token]
+    );
+
+    if (unresolved.length > 0) {
+      console.warn('Filtered unresolved gesture tokens:', unresolved);
+    }
+
+    this.currentConfig.gestureSeq = validGestures;
+
+    if (validGestures.length < 2) {
+      const message =
+        'At least two valid gesture tokens are required to start the system.';
+      console.warn(message, {
+        validGestures,
+        unresolved,
+      });
+      alert(message);
+      this.systemRunning = false;
+      this.buttonPanel.buttons.startStop.html('Go');
+      this.timer.stop();
+      return;
+    }
+
+    console.debug('Gesture tokens resolved:', validGestures);
+
     this.systemRunning = true;
     this.buttonPanel.buttons.startStop.html('Stop');
     this.spatialUIController.hideGestureButtons();
 
     this.timer.start();
 
-    // load gestures into dot controller(s)
-    const gestures = this.currentConfig.gestureSeq || [];
-    const positionMap =
-      this.spatialUIController.dotController?.positionMap || {};
-    const unresolved = gestures.filter(
-      (token) => token && !positionMap[token]
-    );
-    if (gestures.length > 0) {
-      if (unresolved.length > 0) {
-        console.warn('Unresolved gesture tokens:', unresolved);
-      } else {
-        console.debug('Gesture tokens resolved:', gestures);
-      }
-    }
-    const sequences = gestures.length > 0 ? [gestures] : [];
+    const sequences = [validGestures];
     this.spatialUIController.dotController.loadSequences(sequences);
     this.spatialUIController.dotController.setPopUpMode(this.popUpMode);
     const subs = this.timer.getSubdivisionsPerBeat();
