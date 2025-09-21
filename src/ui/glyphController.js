@@ -1,3 +1,5 @@
+import Sequence from './sequence.js';
+
 class SingleBlueGlyph {
   constructor(left, top, anchor) {
     const div = document.createElement('div');
@@ -67,6 +69,8 @@ export default class GlyphController {
     this.dragOffset = { x: 0, y: 0 };
     this.otherCircleOffset = null;
     this.actionStack = [];
+    this.sequences = [];
+    this.activeSequence = null;
     if (this.bar) {
       this._centerSelectionBar();
       window.addEventListener('resize', () => this._centerSelectionBar());
@@ -82,6 +86,7 @@ export default class GlyphController {
       this.glyph2Template.removeAttribute('id');
     }
     if (!this.glyphs.length || !this.bar) return;
+    this._ensureActiveSequence();
     this._setupGlyphs();
     this._setupDropTargets();
   }
@@ -193,6 +198,10 @@ export default class GlyphController {
         const prong = e.dataTransfer.getData('prong');
         const isSingleBlue = glyphId === 'singleBlueGlyph';
 
+        const sequence =
+          this.pendingPairRecord?.sequence || this._ensureActiveSequence();
+        if (!sequence) return;
+
         if (glyphId === 'glyph' && !prong && this.currentGlyph) {
           this.currentGlyph.removeAttribute('id');
           this.currentGlyph.style.width = '15px';
@@ -232,8 +241,8 @@ export default class GlyphController {
           second.style.fontSize = '8px';
           second.style.height = '20px';
           second.value = '';
-          this.bar.appendChild(first);
-          this.bar.appendChild(second);
+          sequence.adopt(first);
+          sequence.adopt(second);
           this._centerSelectionBar();
           const mark = this._markDisplay(name, ratio);
           const record = {
@@ -242,6 +251,7 @@ export default class GlyphController {
             connectors: [],
             buttons: [{ btn, originalColor }],
           };
+          sequence.addRecord(record);
           if (mark) {
             this.pendingPairMark = {
               display: mark.display,
@@ -265,6 +275,9 @@ export default class GlyphController {
             connectors: [],
             buttons: [],
           };
+          if (!record.sequence) {
+            sequence.addRecord(record);
+          }
           record.buttons = record.buttons || [];
           record.buttons.push({ btn, originalColor });
           const mark = this._markDisplay(name, ratio);
@@ -325,7 +338,7 @@ export default class GlyphController {
           if (glyphId) {
             input.dataset.glyph = glyphId;
           }
-          this.bar.appendChild(input);
+          sequence.adopt(input);
           this._centerSelectionBar();
           const mark = this._markDisplay(name, ratio);
           if (this.currentGlyph) {
@@ -340,6 +353,7 @@ export default class GlyphController {
             connectors: [],
             buttons: [{ btn, originalColor }],
           };
+          sequence.addRecord(record);
           this.actionStack.push(record);
         } else {
           // existing logic to spawn another text box is skipped
@@ -401,6 +415,7 @@ export default class GlyphController {
 
   undoLastGlyph() {
     if (this.pendingPairRecord) {
+      const sequence = this.pendingPairRecord.sequence;
       this.pendingPairRecord.inputs.forEach((el) => el.remove());
       this.pendingPairRecord.markers.forEach(({ display, path }) =>
         display.removeMarker(path)
@@ -418,6 +433,13 @@ export default class GlyphController {
           delete btn.dataset.originalColor;
         }
       );
+      if (sequence) {
+        sequence.removeRecord(this.pendingPairRecord);
+        if (sequence === this.activeSequence && sequence.destroyIfEmpty()) {
+          this._removeSequence(sequence);
+          this._ensureActiveSequence();
+        }
+      }
       this.pendingPairRecord = null;
       this.pendingPairInput = null;
       this.pendingPairMark = null;
@@ -441,7 +463,45 @@ export default class GlyphController {
       btn.style.backgroundColor = originalColor;
       delete btn.dataset.originalColor;
     });
+    const { sequence } = last;
+    if (sequence) {
+      sequence.removeRecord(last);
+      if (sequence === this.activeSequence && sequence.destroyIfEmpty()) {
+        this._removeSequence(sequence);
+        this._ensureActiveSequence();
+      }
+    }
     this._notifyGlyphChange();
+  }
+
+  lockActiveSequence() {
+    if (!this.activeSequence) {
+      return { success: false, reason: 'No active sequence to lock.' };
+    }
+    if (this.pendingPairInput || this.pendingPairRecord) {
+      return {
+        success: false,
+        reason: 'Finish pairing the current glyph before locking.',
+      };
+    }
+    if (this.activeSequence.isEmpty()) {
+      if (this.activeSequence.destroyIfEmpty()) {
+        this._removeSequence(this.activeSequence);
+        this.activeSequence = this._ensureActiveSequence();
+        this._centerSelectionBar();
+      }
+      return { success: false, reason: 'Add glyphs before locking the set.' };
+    }
+
+    this.activeSequence.lock();
+    this.actionStack = [];
+    this.activeSequence = null;
+    const next = this._ensureActiveSequence();
+    if (next) {
+      this._centerSelectionBar();
+    }
+    this._notifyGlyphChange();
+    return { success: true, reason: 'Sequence locked.' };
   }
 
   _centerSelectionBar() {
@@ -531,5 +591,29 @@ export default class GlyphController {
       return { display, path };
     }
     return null;
+  }
+
+  _ensureActiveSequence() {
+    if (!this.bar) return null;
+    if (this.activeSequence && this.activeSequence.element.isConnected) {
+      return this.activeSequence;
+    }
+    return this._createSequence();
+  }
+
+  _createSequence() {
+    if (!this.bar) return null;
+    const sequence = new Sequence(this.bar);
+    this.sequences.push(sequence);
+    this.activeSequence = sequence;
+    this._centerSelectionBar();
+    return sequence;
+  }
+
+  _removeSequence(sequence) {
+    this.sequences = this.sequences.filter((item) => item !== sequence);
+    if (this.activeSequence === sequence) {
+      this.activeSequence = null;
+    }
   }
 }
