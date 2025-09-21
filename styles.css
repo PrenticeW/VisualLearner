@@ -90,7 +90,8 @@ h1 {
 
 #selection-bar [data-role="locked-sequences"] {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
+    flex-wrap: nowrap;
     align-items: flex-start;
     gap: 6px;
     grid-column: 1;
