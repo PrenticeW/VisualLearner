@@ -114,13 +114,20 @@ h1 {
 
 .sequence-group {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     align-items: center;
     gap: 6px;
     padding: 6px;
     border-radius: 8px;
     background: rgba(255, 255, 255, 0.8);
     border: 1px solid transparent;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+}
+
+.sequence-group::-webkit-scrollbar {
+    display: none;
 }
 
 .sequence-group[data-state="locked"] {
