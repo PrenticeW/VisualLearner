@@ -79,7 +79,7 @@ h1 {
     left: 50%;
     transform: translateX(-50%);
     display: grid;
-    grid-template-columns: 1fr auto 1fr;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
     align-items: flex-start;
     column-gap: 16px;
     row-gap: 12px;
@@ -95,6 +95,14 @@ h1 {
     align-items: flex-start;
     gap: 6px;
     grid-column: 1;
+    min-width: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+}
+
+#selection-bar [data-role="locked-sequences"]::-webkit-scrollbar {
+    display: none;
 }
 
 #selection-bar [data-role="active-sequence"] {
