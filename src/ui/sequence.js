@@ -40,6 +40,25 @@ export default class Sequence {
     this.element.dataset.state = 'active';
     this.records = [];
     this.inputs = new Set();
+    this.element.addEventListener(
+      'wheel',
+      (event) => {
+        if (event.ctrlKey) return;
+        const target = event.currentTarget;
+        if (!(target instanceof HTMLElement)) return;
+        if (target.scrollWidth <= target.clientWidth) return;
+
+        const delta =
+          Math.abs(event.deltaY) > Math.abs(event.deltaX)
+            ? event.deltaY
+            : event.deltaX;
+        if (delta === 0) return;
+
+        event.preventDefault();
+        target.scrollLeft += delta;
+      },
+      { passive: false }
+    );
     if (this.activeContainer) {
       this.activeContainer.appendChild(this.element);
     }
