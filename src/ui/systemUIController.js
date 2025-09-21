@@ -102,6 +102,7 @@ export default class SystemUIController {
       },
       undoGlyph: () => this.glyphController?.undoLastGlyph(),
       copyState: () => this.copyState(),
+      lockSequence: () => this.lockCurrentSequence(),
       playSeq: () => this.loadFirstSequence(),
       nextSeq: () => this.loadNextSequence(),
     });
@@ -141,6 +142,11 @@ export default class SystemUIController {
         this.stepIndex = (this.stepIndex + 1) % this.totalStepCount;
       }
     });
+  }
+
+  lockCurrentSequence() {
+    console.log('[SystemUI] Lock Sequence clicked');
+    this.buttonPanel?.updateStatusMessage('Sequence locked (placeholder)');
   }
 
   /**

@@ -68,6 +68,7 @@ export default class ButtonPanelController {
     makeBtn('glyphGo', 'Glyph Go', 80);
     makeBtn('toggleWeights', 'Weights: Off', 100);
     makeBtn('copyState', 'Copy State', 80);
+    makeBtn('lockSequence', 'Lock Sequence', 110);
     makeBtn('undoGlyph', 'Undo Glyph', 80);
     makeBtn('playSeq', 'Play Sequence', 120);
     makeBtn('nextSeq', 'Next Sequence', 120);
