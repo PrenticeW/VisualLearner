@@ -1,4 +1,4 @@
- // src/ui/ButtonPanelController.js
+// src/ui/ButtonPanelController.js
 
 export default class ButtonPanelController {
   constructor(p, handlers = {}) {
@@ -7,6 +7,7 @@ export default class ButtonPanelController {
     this.container = null;
     this.buttons = {};
     this.tempoInput = null;
+    this.statusMessage = null;
   }
 
   build() {
@@ -33,6 +34,8 @@ export default class ButtonPanelController {
         .style('font-size', '10px')
         .parent(this.container)
         .mousePressed(() => this.handlers[key]?.());
+      btn.addClass('gesture-btn');
+      btn.attribute('data-name', label);
       this.buttons[key] = btn;
     };
 
@@ -48,15 +51,40 @@ export default class ButtonPanelController {
       .style('margin', '2px')
       .parent(this.container);
 
+    // Dot selector (active gesture row)
+    this.dotRadio = p
+      .createRadio()
+      .style('margin', '2px')
+      .style('font-size', '10px')
+      .parent(this.container);
+    this.dotRadio.option('0', 'Dot 1');
+    this.dotRadio.option('1', 'Dot 2');
+    this.dotRadio.value('0');
+    this.dotRadio.changed(() =>
+      this.handlers.setActiveDot?.(parseInt(this.dotRadio.value(), 10))
+    );
+
     // Other controls
-    makeBtn('startStop', 'Go', 60);
-    makeBtn('togglePopUp', 'Pop Up Mode: Off', 100);
-    makeBtn('toggleDuration', 'Duration: 8', 80);
+    makeBtn('glyphGo', 'Glyph Go', 80);
+    makeBtn('toggleWeights', 'Weights: Off', 100);
     makeBtn('copyState', 'Copy State', 80);
-    makeBtn('clearWeight', 'Clear Weight', 80);
-    makeBtn('clearGesture', 'Clear Gesture', 80);
+    makeBtn('lockSequence', 'Lock Sequence', 110);
+    makeBtn('undoGlyph', 'Undo Glyph', 80);
     makeBtn('playSeq', 'Play Sequence', 120);
     makeBtn('nextSeq', 'Next Sequence', 120);
+
+    this.statusMessage = p
+      .createSpan('')
+      .style('margin-left', 'auto')
+      .style('font-size', '12px')
+      .style('color', '#b45309')
+      .style('min-height', '20px')
+      .style('display', 'flex')
+      .style('align-items', 'center')
+      .style('visibility', 'hidden')
+      .attribute('role', 'status')
+      .attribute('aria-live', 'polite')
+      .parent(this.container);
   }
 
   // Expose a getter so SystemUIController can read the input’s value
@@ -72,10 +100,14 @@ export default class ButtonPanelController {
   updateTimerModeLabel(text) {
     this.buttons.toggleTimerMode.html(text);
   }
-  updatePopUpModeLabel(text) {
-    this.buttons.togglePopUp.html(text);
+
+  updateWeightsLabel(text) {
+    this.buttons.toggleWeights.html(text);
   }
-  updateDurationLabel(text) {
-    this.buttons.toggleDuration.html(text);
+
+  updateStatusMessage(text) {
+    if (!this.statusMessage) return;
+    this.statusMessage.html(text || '');
+    this.statusMessage.style('visibility', text ? 'visible' : 'hidden');
   }
 }

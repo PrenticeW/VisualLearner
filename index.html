@@ -4,10 +4,20 @@
   <head>
     <base href="/" />
     <meta charset="UTF-8" />
-    <title>My p5 App</title>
-   
+    <title> Drag n Drop </title>
+    <link rel="stylesheet" href="/styles.css" />
     <!-- Only your module—p5 comes in via imports -->
     <script type="module" src="/src/main.js"></script>
   </head>
-  <body></body>
+  <body>
+    <div id="selection-bar"></div>
+    <div id="glyph" class="glyph" draggable="true" data-glyph="glyph"></div>
+      <div id="glyph2" class="glyph" draggable="true" data-glyph="glyph2">
+        <svg width="42" height="42">
+          <line x1="35" y1="7" x2="7" y2="35" />
+          <circle data-prong="right" cx="35" cy="7" r="7" fill="#3fc009" />
+          <circle data-prong="left" cx="7" cy="35" r="7" fill="#3fc009" />
+        </svg>
+      </div>
+  </body>
 </html>

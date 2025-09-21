@@ -1,6 +1,6 @@
  // src/ui/spatialUIController.js
 
-import DotController from '../controllers/dotController.js';
+import GlyphDotController from '../controllers/glyphDotController.js';
 import OrbController from '../controllers/orbController.js';
 
 export default class SpatialUIController {
@@ -59,12 +59,6 @@ export default class SpatialUIController {
     const primary = '#B9B0B1';
     const secondary = '#89CFF0';
 
-    // -- Orb --------------------------------------------
-    this.orbController = new OrbController(this.p, {
-      center: { x: cx, y: cy },
-      diameter: 65,
-    });
-
     // -- GestureObject (15×15) --------------------------------------------
     class GestureObject {
       constructor(center, prefix, color) {
@@ -72,13 +66,15 @@ export default class SpatialUIController {
         this.prefix = prefix;
         this.buttons = {};
 
-        ['UL', 'U', 'UR', 'L', '', 'R', 'DL', 'D', 'DR'].forEach((sfx) => {
-          const name = sfx ? `${prefix}.${sfx}` : prefix;
+        ['UL', 'U', 'UR', 'L', 'C', 'R', 'DL', 'D', 'DR'].forEach((sfx) => {
+          const name = `${prefix}.${sfx}`;
           const btn = p.createButton('');
           btn.size(15, 15);
           btn.style('background-color', color);
           btn.style('border', 'none');
           btn.style('transform', 'rotate(45deg)');
+          btn.addClass('gesture-btn');
+          btn.attribute('data-name', name);
           btn.mousePressed(() => {}); // wired later
           this.buttons[name] = btn;
         });
@@ -92,7 +88,7 @@ export default class SpatialUIController {
           [`${this.prefix}.U`]: { x: x, y: y - s },
           [`${this.prefix}.UR`]: { x: x + s, y: y - s },
           [`${this.prefix}.L`]: { x: x - s, y: y },
-          [`${this.prefix}`]: { x: x, y: y },
+          [`${this.prefix}.C`]: { x: x, y: y },
           [`${this.prefix}.R`]: { x: x + s, y: y },
           [`${this.prefix}.DL`]: { x: x - s, y: y + s },
           [`${this.prefix}.D`]: { x: x, y: y + s },
@@ -111,73 +107,79 @@ export default class SpatialUIController {
       }
     }
 
-    // -- WeightObject (visual only circle) ---------------------------------
-    class WeightObject {
-      constructor(center, diameter) {
-        this.center = center;
-        this.diameter = diameter;
-      }
-      draw() {
-        p.push();
-        p.translate(this.center.x, this.center.y);
-        p.noStroke();
-        p.fill(180, 130, 200, 180);
-        p.ellipse(0, 0, this.diameter);
-        p.pop();
-      }
-    }
+    // helper to build 3×3 grid of GestureObjects for a cluster
+    const buildCluster = (centerX, basePrefix) => {
+      return [
+        new GestureObject({ x: centerX, y: cy }, `${basePrefix}`, secondary),
+        new GestureObject({ x: centerX, y: cy - 100 }, `${basePrefix}.U`, primary),
+        new GestureObject({ x: centerX, y: cy + 100 }, `${basePrefix}.D`, primary),
+        new GestureObject(
+          {
+            x: centerX + this.hOffset - this.pairSpacing - this.extraGap / 2,
+            y: cy - 100,
+          },
+          `${basePrefix}.UR`,
+          secondary
+        ),
+        new GestureObject(
+          {
+            x: centerX + this.hOffset - this.pairSpacing - this.extraGap / 2,
+            y: cy,
+          },
+          `${basePrefix}.R`,
+          primary
+        ),
+        new GestureObject(
+          {
+            x: centerX + this.hOffset - this.pairSpacing - this.extraGap / 2,
+            y: cy + 100,
+          },
+          `${basePrefix}.DR`,
+          secondary
+        ),
+        new GestureObject(
+          {
+            x: centerX - this.hOffset + this.pairSpacing + this.extraGap / 2,
+            y: cy - 100,
+          },
+          `${basePrefix}.UL`,
+          secondary
+        ),
+        new GestureObject(
+          {
+            x: centerX - this.hOffset + this.pairSpacing + this.extraGap / 2,
+            y: cy,
+          },
+          `${basePrefix}.L`,
+          primary
+        ),
+        new GestureObject(
+          {
+            x: centerX - this.hOffset + this.pairSpacing + this.extraGap / 2,
+            y: cy + 100,
+          },
+          `${basePrefix}.DL`,
+          secondary
+        ),
+      ];
+    };
 
-    // instantiate gesture‐objects
-    this.allGestureObjects = [
-      new GestureObject({ x: cx, y: cy }, 'C', secondary),
-      new GestureObject({ x: cx, y: cy - 100 }, 'U', primary),
-      new GestureObject({ x: cx, y: cy + 100 }, 'D', primary),
-      new GestureObject(
-        {
-          x: cx + this.hOffset - this.pairSpacing - this.extraGap / 2,
-          y: cy - 100,
-        },
-        'RU',
-        secondary
-      ),
-      new GestureObject(
-        { x: cx + this.hOffset - this.pairSpacing - this.extraGap / 2, y: cy },
-        'R',
-        primary
-      ),
-      new GestureObject(
-        {
-          x: cx + this.hOffset - this.pairSpacing - this.extraGap / 2,
-          y: cy + 100,
-        },
-        'RD',
-        secondary
-      ),
-      new GestureObject(
-        {
-          x: cx - this.hOffset + this.pairSpacing + this.extraGap / 2,
-          y: cy - 100,
-        },
-        'LU',
-        secondary
-      ),
-      new GestureObject(
-        { x: cx - this.hOffset + this.pairSpacing + this.extraGap / 2, y: cy },
-        'L',
-        primary
-      ),
-      new GestureObject(
-        {
-          x: cx - this.hOffset + this.pairSpacing + this.extraGap / 2,
-          y: cy + 100,
-        },
-        'LD',
-        secondary
-      ),
-    ];
+    const spacing = this.hOffset * 2 + this.extraGap;
+    const leftCluster = buildCluster(cx - spacing / 2, 'L');
+    const rightCluster = buildCluster(cx + spacing / 2, 'R');
+    this.allGestureObjects = [...leftCluster, ...rightCluster];
 
-    // instantiate the central weight‐object visual
-    this.weightObject = new WeightObject({ x: cx, y: cy }, 65);
+    // -- Orb --------------------------------------------
+    this.orbControllers = {
+      L: new OrbController(this.p, {
+        center: { x: cx - spacing / 2, y: cy },
+        diameter: 65,
+      }),
+      R: new OrbController(this.p, {
+        center: { x: cx + spacing / 2, y: cy },
+        diameter: 65,
+      }),
+    };
 
     // -- integrate weight‐object BUTTON grid (40×40) -----------------------
     this.weightObjectButtons = {};
@@ -185,7 +187,7 @@ export default class SpatialUIController {
     Object.entries({
       position: 'fixed',
       top: '100px',
-      right: '20px',
+      left: '20px',
       display: 'grid',
       'grid-template-columns': 'repeat(3, 40px)',
       'grid-gap': '5px',
@@ -196,17 +198,28 @@ export default class SpatialUIController {
     }).forEach(([prop, val]) => {
       this.weightObjectButtonContainer.style(prop, val);
     });
+    // hidden by default; toggled via show/hideWeightButtons
+    this.weightObjectButtonContainer.style('visibility', 'hidden');
 
     const weightNames = [
-      'X.LU',
-      'X.U',
-      'X.RU',
-      'X.L',
-      'X',
-      'X.R',
-      'X.LD',
-      'X.D',
-      'X.RD',
+      'W.L.LU',
+      'W.L.U',
+      'W.L.RU',
+      'W.L.L',
+      'W.L',
+      'W.L.R',
+      'W.L.LD',
+      'W.L.D',
+      'W.L.RD',
+      'W.R.LU',
+      'W.R.U',
+      'W.R.RU',
+      'W.R.L',
+      'W.R',
+      'W.R.R',
+      'W.R.LD',
+      'W.R.D',
+      'W.R.RD',
     ];
     weightNames.forEach((name) => {
       const btn = p.createButton('');
@@ -215,7 +228,9 @@ export default class SpatialUIController {
       btn.style('border', '1px solid #800080');
       btn.style('border-radius', '5px');
       btn.style('font-size', '8px');
-      btn.html(name.replace('X.', ''));
+      btn.html(name.replace(/^W\.[LR]\./, ''));
+      btn.addClass('gesture-btn');
+      btn.attribute('data-name', name.replace(/^W\.[LR]\./, ''));
       btn.parent(this.weightObjectButtonContainer);
       btn.mousePressed(() => {}); // wired later
       this.weightObjectButtons[name] = btn;
@@ -225,19 +240,26 @@ export default class SpatialUIController {
     const gesturePositions = {};
     this.allGestureObjects.forEach((obj) => {
       Object.assign(gesturePositions, obj.getPositions());
+      gesturePositions[obj.prefix] = { x: obj.center.x, y: obj.center.y };
     });
 
-    // instantiate & initialize dotController exactly once
-    this.dotController = new DotController(this.p, {
+    // instantiate & initialize dot controller(s) exactly once
+    this.dotController = new GlyphDotController(this.p, {
       positionMap: gesturePositions,
       moveDurationMs: 500,
+      selectionBarSelector: '#selection-bar',
     });
-    this.dotController.loadSequence(['C', 'C.U', 'C.D', 'C.L', 'C.R']);
+    this.dotController.loadSequences([
+      ['L.C', 'L.U', 'L.D', 'L.L', 'L.R'],
+      ['R.C', 'R.U', 'R.D', 'R.L', 'R.R'],
+    ]);
+    this.dotController.syncFromGlyphs();
   }
 
   render(dt) {
-    // 1) draw the static weight‐halo
-    this.orbController.draw();
+    // 1) draw the static weight‐halos
+    this.orbControllers.L.draw();
+    this.orbControllers.R.draw();
 
     // 1.5) draw context markers (behind the dot)
     if (this.showContextMarkers) {
@@ -245,11 +267,13 @@ export default class SpatialUIController {
       this.p.noStroke();
       this.p.fill(180, 130, 200, 180);
       this.allGestureObjects
-        // filter out the center marker (prefix 'C')
-        .filter((go) => go.prefix !== 'C')
+        // filter out the center markers (prefix 'L' and 'R')
+        .filter((go) => go.prefix !== 'L' && go.prefix !== 'R')
         .forEach((go) => {
-          const { x, y } = go.center;
-          this.p.ellipse(x, y, 45, 45);
+          const points = Object.values(go.getPositions());
+          points.forEach((pt) => {
+            this.p.ellipse(pt.x, pt.y, 10, 10);
+          });
         });
       this.p.pop();
     }
@@ -279,6 +303,16 @@ export default class SpatialUIController {
         btn.style('visibility', 'visible')
       );
     });
+  }
+
+  /** Hide the 40×40 weight buttons */
+  hideWeightButtons() {
+    this.weightObjectButtonContainer.style('visibility', 'hidden');
+  }
+
+  /** Show the 40×40 weight buttons */
+  showWeightButtons() {
+    this.weightObjectButtonContainer.style('visibility', 'visible');
   }
 
   /** Turn context-marker circles on */

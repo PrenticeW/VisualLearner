@@ -19,8 +19,9 @@ export default class OrbController {
   /**
    * Highlight one of the eight directional sectors.
    * @param {string} section
-   *        one of 'X.U', 'X.D', 'X.L', 'X.R',
-   *        'X.LU', 'X.RU', 'X.LD', 'X.RD'
+   *        one of 'W.L.U', 'W.L.D', 'W.L.L', 'W.L.R',
+   *        'W.L.LU', 'W.L.RU', 'W.L.LD', 'W.L.RD',
+   *        or the corresponding 'W.R.*' tokens.
    */
   setHighlight(section) {
     this.highlightedSection = section;
@@ -47,33 +48,36 @@ export default class OrbController {
 
     // draw the highlighted slice, if any
     if (this.highlightedSection) {
-      p.fill(200, 80, 230, 220);
-      switch (this.highlightedSection) {
-        case 'X.U':
-          p.arc(0, 0, d, d, p.PI, 0, p.PIE);
-          break;
-        case 'X.D':
-          p.arc(0, 0, d, d, 0, p.PI, p.PIE);
-          break;
-        case 'X.R':
-          p.arc(0, 0, d, d, -p.HALF_PI, p.HALF_PI, p.PIE);
-          break;
-        case 'X.L':
-          p.arc(0, 0, d, d, p.HALF_PI, 3 * p.HALF_PI, p.PIE);
-          break;
-        case 'X.LU':
-          p.arc(0, 0, d, d, p.PI, 3 * p.HALF_PI, p.PIE);
-          break;
-        case 'X.RU':
-          p.arc(0, 0, d, d, 3 * p.HALF_PI, p.TWO_PI, p.PIE);
-          break;
-        case 'X.LD':
-          p.arc(0, 0, d, d, p.HALF_PI, p.PI, p.PIE);
-
-          break;
-        case 'X.RD':
-          p.arc(0, 0, d, d, 0, p.HALF_PI, p.PIE);
-          break;
+      const parts = this.highlightedSection.split('.');
+      const dir = parts[2];
+      if (dir) {
+        p.fill(200, 80, 230, 220);
+        switch (dir) {
+          case 'U':
+            p.arc(0, 0, d, d, p.PI, 0, p.PIE);
+            break;
+          case 'D':
+            p.arc(0, 0, d, d, 0, p.PI, p.PIE);
+            break;
+          case 'R':
+            p.arc(0, 0, d, d, -p.HALF_PI, p.HALF_PI, p.PIE);
+            break;
+          case 'L':
+            p.arc(0, 0, d, d, p.HALF_PI, 3 * p.HALF_PI, p.PIE);
+            break;
+          case 'LU':
+            p.arc(0, 0, d, d, p.PI, 3 * p.HALF_PI, p.PIE);
+            break;
+          case 'RU':
+            p.arc(0, 0, d, d, 3 * p.HALF_PI, p.TWO_PI, p.PIE);
+            break;
+          case 'LD':
+            p.arc(0, 0, d, d, p.HALF_PI, p.PI, p.PIE);
+            break;
+          case 'RD':
+            p.arc(0, 0, d, d, 0, p.HALF_PI, p.PIE);
+            break;
+        }
       }
     }
 

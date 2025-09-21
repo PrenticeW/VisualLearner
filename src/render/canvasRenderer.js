@@ -20,6 +20,11 @@ export default class CanvasRenderer {
     this.p.select('body').style('background-color', '#000');
   }
 
+  recenter() {
+    this.offsetX = (this.p.windowWidth - this.width) / 2;
+    this.canvas.position(this.offsetX, this.offsetY);
+  }
+
   clear() {
     this.p.clear();
     this.p.background(0);
