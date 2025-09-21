@@ -493,6 +493,7 @@ export default class GlyphController {
       return { success: false, reason: 'Add glyphs before locking the set.' };
     }
 
+    this._clearTimelineForSequence(this.activeSequence);
     this.activeSequence.lock();
     this.actionStack = [];
     this._resetGestureButtonColors();
@@ -514,6 +515,28 @@ export default class GlyphController {
       } else {
         btn.style.removeProperty('background-color');
       }
+    });
+  }
+
+  _clearTimelineForSequence(sequence) {
+    if (!sequence || !Array.isArray(sequence.records)) {
+      return;
+    }
+
+    sequence.records.forEach((record) => {
+      (record.markers || []).forEach(({ display, path }) => {
+        if (display && typeof display.removeMarker === 'function') {
+          display.removeMarker(path);
+        }
+      });
+
+      (record.connectors || []).forEach(({ line, display }) => {
+        if (display && typeof display.removeConnection === 'function') {
+          display.removeConnection(line);
+        } else if (line && typeof line.remove === 'function') {
+          line.remove();
+        }
+      });
     });
   }
 
