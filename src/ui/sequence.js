@@ -1,13 +1,47 @@
+const BAR_CONTAINERS = new WeakMap();
+
+function ensureContainers(bar) {
+  if (!bar) return { activeContainer: null, lockedContainer: null };
+
+  let containers = BAR_CONTAINERS.get(bar);
+  if (containers) {
+    return containers;
+  }
+
+  const lockedContainer =
+    bar.querySelector('[data-role="locked-sequences"]') ||
+    document.createElement('div');
+  if (!lockedContainer.dataset.role) {
+    lockedContainer.dataset.role = 'locked-sequences';
+    bar.appendChild(lockedContainer);
+  }
+
+  const activeContainer =
+    bar.querySelector('[data-role="active-sequence"]') ||
+    document.createElement('div');
+  if (!activeContainer.dataset.role) {
+    activeContainer.dataset.role = 'active-sequence';
+    bar.appendChild(activeContainer);
+  }
+
+  containers = { activeContainer, lockedContainer };
+  BAR_CONTAINERS.set(bar, containers);
+  return containers;
+}
+
 export default class Sequence {
   constructor(bar) {
     this.bar = bar;
+    const { activeContainer, lockedContainer } = ensureContainers(this.bar);
+    this.activeContainer = activeContainer;
+    this.lockedContainer = lockedContainer;
     this.element = document.createElement('div');
     this.element.className = 'sequence-group';
     this.element.dataset.state = 'active';
     this.records = [];
     this.inputs = new Set();
-    if (this.bar) {
-      this.bar.appendChild(this.element);
+    if (this.activeContainer) {
+      this.activeContainer.appendChild(this.element);
     }
   }
 
@@ -53,6 +87,9 @@ export default class Sequence {
 
   lock() {
     this.element.dataset.state = 'locked';
+    if (this.lockedContainer && this.element.parentElement !== this.lockedContainer) {
+      this.lockedContainer.appendChild(this.element);
+    }
   }
 
   destroyIfEmpty() {

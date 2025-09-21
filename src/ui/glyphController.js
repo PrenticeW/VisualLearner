@@ -519,8 +519,7 @@ export default class GlyphController {
 
   _centerSelectionBar() {
     if (!this.bar) return;
-    const width = this.bar.getBoundingClientRect().width;
-    this.bar.style.marginLeft = `-${width / 2}px`;
+    this.bar.style.marginLeft = '0px';
   }
 
   _spawnSingleGlyph(left, top, anchor) {

@@ -75,15 +75,40 @@ h1 {
 
 #selection-bar {
     position: fixed;
-    top: 130px;
+    top: 150px;
     left: 50%;
-    display: flex;
-    flex-wrap: wrap;
+    transform: translateX(-50%);
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
     align-items: flex-start;
-    justify-content: center;
-    gap: 6px;
-    padding: 6px;
+    column-gap: 16px;
+    row-gap: 12px;
+    padding: 6px 12px;
+    width: min(960px, calc(100vw - 40px));
     z-index: 1000;
+}
+
+#selection-bar [data-role="locked-sequences"] {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    grid-column: 1;
+}
+
+#selection-bar [data-role="active-sequence"] {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    grid-column: 2;
+}
+
+#selection-bar [data-role="active-sequence"] .sequence-group {
+    margin: 0 auto;
+}
+
+#selection-bar [data-role="locked-sequences"] .sequence-group {
+    align-self: flex-start;
 }
 
 .sequence-group {
