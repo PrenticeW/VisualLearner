@@ -81,6 +81,7 @@ h1 {
     transform: none;
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(520px, max-content) minmax(0, 1fr);
+    grid-template-areas: 'locked active .';
     align-items: flex-start;
     column-gap: 16px;
     row-gap: 12px;
@@ -90,6 +91,7 @@ h1 {
 }
 
 #selection-bar [data-role="locked-sequences"] {
+    grid-area: locked;
     display: flex;
     flex-direction: row;
     flex-wrap: nowrap;
@@ -108,6 +110,7 @@ h1 {
 }
 
 #selection-bar [data-role="active-sequence"] {
+    grid-area: active;
     display: flex;
     justify-content: center;
     align-items: flex-start;
@@ -138,6 +141,28 @@ h1 {
 .sequence-group[data-state="locked"] {
     border: 2px solid rgba(236, 72, 153, 0.45);
     background: rgba(255, 255, 255, 0.5);
+}
+
+@media (max-width: 1100px) {
+    #selection-bar {
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-areas:
+            'active'
+            'locked';
+    }
+
+    #selection-bar [data-role="active-sequence"] {
+        grid-column: 1;
+        grid-row: 1;
+        min-width: 0;
+    }
+
+    #selection-bar [data-role="locked-sequences"] {
+        grid-column: 1;
+        grid-row: 2;
+        max-width: none;
+        width: 100%;
+    }
 }
 
 #timeline-wrapper {
