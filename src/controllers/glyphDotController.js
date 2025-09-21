@@ -102,7 +102,10 @@ export default class GlyphDotController extends MultiDotController {
 
     const inputs = Array.from(
       this.selectionBar.querySelectorAll('input[type="text"]')
-    );
+    ).filter((input) => {
+      const group = input.closest('.sequence-group');
+      return !group || group.dataset.state !== 'locked';
+    });
     if (inputs.length === 0) return [];
 
     const trackMap = new Map();
