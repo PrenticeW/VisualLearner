@@ -495,6 +495,7 @@ export default class GlyphController {
 
     this.activeSequence.lock();
     this.actionStack = [];
+    this._resetGestureButtonColors();
     this.activeSequence = null;
     const next = this._ensureActiveSequence();
     if (next) {
@@ -502,6 +503,18 @@ export default class GlyphController {
     }
     this._notifyGlyphChange();
     return { success: true, reason: 'Sequence locked.' };
+  }
+
+  _resetGestureButtonColors() {
+    const buttons = document.querySelectorAll('.gesture-btn');
+    buttons.forEach((btn) => {
+      if (btn.dataset.originalColor) {
+        btn.style.backgroundColor = btn.dataset.originalColor;
+        delete btn.dataset.originalColor;
+      } else {
+        btn.style.removeProperty('background-color');
+      }
+    });
   }
 
   _centerSelectionBar() {
