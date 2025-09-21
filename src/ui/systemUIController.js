@@ -146,7 +146,32 @@ export default class SystemUIController {
 
   lockCurrentSequence() {
     console.log('[SystemUI] Lock Sequence clicked');
-    this.buttonPanel?.updateStatusMessage('Sequence locked (placeholder)');
+    if (
+      !this.glyphController ||
+      typeof this.glyphController.lockActiveSequence !== 'function'
+    ) {
+      this.buttonPanel?.updateStatusMessage('Locking is not available yet.');
+      return;
+    }
+
+    const result = this.glyphController.lockActiveSequence();
+    const { success, reason } = result || {};
+    const friendlyReasons = {
+      'No active sequence to lock.': 'No active sequence is ready to lock yet.',
+      'Finish pairing the current glyph before locking.':
+        'Complete the current pair before locking the sequence.',
+      'Add glyphs before locking the set.':
+        'Add at least one glyph before locking the sequence.',
+    };
+
+    if (success) {
+      this.buttonPanel?.updateStatusMessage('Sequence locked!');
+    } else {
+      const message =
+        friendlyReasons[reason] || reason ||
+        'Unable to lock the current sequence.';
+      this.buttonPanel?.updateStatusMessage(message);
+    }
   }
 
   /**
