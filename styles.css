@@ -76,15 +76,16 @@ h1 {
 #selection-bar {
     position: fixed;
     top: 150px;
-    left: 50%;
-    transform: translateX(-50%);
+    left: 0;
+    right: 0;
+    transform: none;
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
     align-items: flex-start;
     column-gap: 16px;
     row-gap: 12px;
     padding: 6px 12px;
-    width: min(960px, calc(100vw - 40px));
+    width: 100%;
     z-index: 1000;
 }
 
